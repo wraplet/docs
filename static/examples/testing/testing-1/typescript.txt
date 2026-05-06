@@ -1,0 +1,24 @@
+import { AbstractWraplet } from "wraplet";
+
+class ExampleWraplet extends AbstractWraplet<HTMLElement> {
+    public setValue(value: string): void {
+        this.node.innerHTML = value;
+    }
+
+    public async onInitialize() {
+        this.nodeManager.addListener("click", () => {
+            this.node.style.color = "red";
+        });
+    }
+
+    public static async create(node: ParentNode, selector: string) {
+        return this.createAndInitializeWraplets(node, selector);
+    }
+}
+
+const wraplets = await ExampleWraplet.create(
+    document,
+    "data-js-example",
+);
+
+wraplets[0].setValue("Click me!");

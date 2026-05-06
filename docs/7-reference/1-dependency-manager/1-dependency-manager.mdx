@@ -1,0 +1,189 @@
+---
+id: reference-dependency-manager
+title: DependencyManager
+slug: /reference/dependency-manager
+sidebar_position: 1
+---
+
+`DependencyManager` is an interface for an object that abstracts away management of dependencies.
+
+```typescript
+interface DependencyManager<
+  N extends Node = Node,
+  M extends WrapletDependencyMap = {},
+> {
+```
+
+## Properties and methods
+
+### DependencyManagerSymbol
+
+```typescript
+[DependencyManagerSymbol]: true;
+```
+
+This is a symbol that is used to identify the `DependencyManager`. If the symbol is present,
+`wraplet` library will assume that the `DependencyManager` interface is implemented.
+
+### node
+
+```typescript
+readonly node: N;
+```
+
+This is a property exposing the wrapped node.
+
+### instantiateDependencies
+
+```typescript
+instantiateDependencies(): void;
+```
+
+This method instantiates dependencies based on the provided dependency map.
+
+Instantiation is a **synchronous** operation.
+
+### initializeDependencies
+
+```typescript
+initializeDependencies(): Promise<void>;
+```
+
+This method initializes dependencies: it runs the `initialize` method of each dependency's `Wraplet API`.
+
+Initialization is an **asynchronous** operation.
+
+### destroyDependencies
+
+```typescript
+destroyDependencies(): Promise<void>;
+```
+
+This method destroys dependencies: it runs the `destroy` method of each dependency's `Wraplet API`.
+
+Destruction is an **asynchronous** operation.
+
+### syncDependencies
+
+```typescript
+syncDependencies(): Promise<void>;
+```
+
+This is an **experimental** method that synchronizes dependencies with the DOM.
+
+It makes it possible for DOM to dynamically change under the DependencyManager and DependencyManager
+to update its dependencies accordingly.
+
+The synchronization works as follows:
+- it can be run only after the dependency manager is already initialized.
+- new dependency instances will be created for the new nodes that appeared in the DOM if they match the map's selectors.
+- dependencies that are outside the node tree of the syncing wraplets will get destroyed, unless:
+  - they are marked with `destructible: false` in the dependency map.
+  - they have no `selector` property in the dependency map.
+
+### addDependencyInstantiatedListener
+
+```typescript
+addDependencyInstantiatedListener(
+  callback: DependencyLifecycleListener<M, keyof M>,
+): void;
+```
+
+This method allows for listening for dependency's **instantiation**.
+
+Note that for it to have any effect, you have to register your listener before calling the `instantiateDependencies` method.
+
+
+### addDependencyInitializedListener
+
+```typescript
+addDependencyInitializedListener(
+  callback: DependencyLifecycleAsyncListener<M, keyof M>,
+): void;
+```
+
+This method allows for listening for dependency's **initialization**.
+
+Normally wraplet's "personal" initialization kicks off after all its dependencies are initialized.
+However, in some circumstances, you might want to act immediately upon specific dependency initialization,
+without waiting for the rest of the dependencies to be initialized.
+This method allows you to do that.
+
+Note that for it to have any effect, you have to register your listener before calling the `initializeDependencies` method.
+
+### addDependencyDestroyedListener
+
+```typescript
+addDependencyDestroyedListener(
+  callback: DependencyLifecycleAsyncListener<M, keyof M>,
+): void;
+```
+
+
+This method allows for listening for dependency's **destruction**.
+
+Note that for it to have any effect, you have to register your listener before calling the `destroyDependencies` method.
+
+### setExistingInstance
+
+```typescript
+setExistingInstance<
+  K extends SingleDependencyKeys<M> & Extract<keyof M, string>,
+>(
+  id: K,
+  wraplet: DependencyInstance<M, K>,
+): void;
+```
+
+This method allows for setting an existing object as a dependency with `multiple: false`.
+
+It means that not all dependencies have to be instantiated by the Dependency Manager.
+Even a required dependency can be set manually, but it would have to be done before calling the
+`initializeDependencies` method.
+
+### addExistingInstance
+
+```typescript
+addExistingInstance<
+  K extends MultipleDependencyKeys<M> & Extract<keyof M, string>,
+>(
+  id: K,
+  wraplet: DependencyInstance<M, K>,
+): void;
+```
+
+This method allows for adding an existing object to a dependency with `multiple: true`.
+
+### dependencies
+
+```typescript
+readonly dependencies: WrapletDependencies<M>;
+```
+
+This property exposes the instantiated dependencies and allows for accessing them by their id.
+
+
+## Lifecycle management
+
+`DependencyManager` manages the lifecycles of dependencies collectively with the following methods:
+
+```typescript
+instantiateDependencies(): void
+initializeDependencies(): Promise<void>
+destroyDependencies(): Promise<void>
+```
+
+## DDM
+
+`DDM` is the default implementation of the `DependencyManager` interface provided by the `wraplet` library.
+
+```typescript
+import { DDM, type WrapletDependencyMap, type DependencyManager } from "wraplet";
+
+const map = {
+    // ...
+} satisfies WrapletDependencyMap;
+
+const node = document.querySelector("[data-js-mywraplet]") as HTMLElement;
+const dm: DependencyManager<HTMLElement, typeof map> = new DDM(node, map);
+```

@@ -1,0 +1,93 @@
+---
+id: reference-node-tree-manager
+title: NodeTreeManager
+slug: /reference/node-tree-manager
+sidebar_position: 4
+---
+
+`NodeTreeManager` is an interface describing a manager that manages nodes.
+
+When a new node tree appears in the DOM, you may want to automatically instantiate and initialize
+wraplets on it. If you remove a node from the DOM, you may want to destroy all wraplets related to it.
+This is what `NodeTreeManager` is for.
+
+```typescript
+interface NodeTreeManager<CONTEXT = unknown> {
+  addNodeInitializer(callback: NodeInitializer<CONTEXT>): void;
+  initializeNode(node: Node, context?: CONTEXT): Promise<void>;
+  destroyNode(node: Node): Promise<void>;
+}
+```
+
+`wraplet` library provides the default implementation of the `NodeTreeManager` named `DNTM`.
+
+Note that `CONTEXT` is an optional generic type that can be used to pass a custom context to node initializers.
+It's up to you to decide what context your node initializers need.
+
+If you are replacing an existing node, you may want to initialize the new node first, and pass the old one
+in the context to the `initializeNode` method. Having access to the old node, when initializing the new one,
+might be useful in some cases.
+
+## Properties and methods
+
+### addNodeInitializer
+
+```typescript
+addNodeInitializer(callback: NodeInitializer<CONTEXT>): void;
+```
+
+Registers a new node initializer.
+
+Node initializers are called when `NodeTreeManager` initializes a new node.
+
+### initializeNode
+
+```typescript
+initializeNode(node: Node, context?: CONTEXT): Promise<void>;
+```
+
+Initializes a node with the given context that will get passed to all node initializers.
+
+### destroyNode
+
+```typescript
+destroyNode(node: Node): Promise<void>;
+```
+
+Destroys all wraplets on the given node.
+
+## NodeInitializer
+
+```typescript
+type NodeInitializer<CONTEXT> = (
+  node: Node,
+  context?: CONTEXT,
+) => Promise<void>;
+```
+
+`NodeInitializer` is an async function that's responsible for instantiating and initializing
+wraplets on an initialized node.
+
+## Examples
+
+import BrowserOnly from "@docusaurus/BrowserOnly";
+
+### Replacing nodes
+
+<BrowserOnly>
+    {() => {
+        const Example = require("@site/src/components/Example").default;
+        const MonacoEditor = require("@site/src/components/MonacoEditor").default;
+
+        return (
+            <Example style="small" loadComments={false}>
+                <h4>CSS</h4>
+                <MonacoEditor contentUrl="/examples/reference/node-tree-manager/replacing-node/styles.css" language="css" height="80px" />
+                <h4>HTML</h4>
+                <MonacoEditor contentUrl="/examples/reference/node-tree-manager/replacing-node/html.htm" language="html" height="80px" />
+                <h4>TypeScript</h4>
+                <MonacoEditor contentUrl="/examples/reference/node-tree-manager/replacing-node/typescript.txt" language="typescript" height="480px" />
+            </Example>
+        );
+    }}
+</BrowserOnly>

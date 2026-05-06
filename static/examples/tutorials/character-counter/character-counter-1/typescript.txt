@@ -1,0 +1,37 @@
+import {
+    AbstractWraplet,
+} from "wraplet";
+
+/*
+ * Step 1
+ */
+
+/*
+ * Dependencies.
+ */
+
+class Input extends AbstractWraplet<HTMLInputElement> {
+
+    public addCountChangeListener(listener: (newCount: number) => void) {
+        this.nodeManager.addListener("keyup", () => listener(this.node.value.length));
+    }
+
+    protected override supportedNodeTypes() {
+        return this.supportedNodeTypesGuard([HTMLInputElement]);
+    }
+}
+
+class Display extends AbstractWraplet<HTMLInputElement> {
+
+    public setValue(value: number): void {
+        this.node.value = value.toString();
+    }
+
+    protected override supportedNodeTypes() {
+        return this.supportedNodeTypesGuard([HTMLInputElement]);
+    }
+}
+
+/*
+ * END Step 1
+ */

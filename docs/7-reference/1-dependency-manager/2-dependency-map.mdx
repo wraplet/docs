@@ -1,0 +1,191 @@
+---
+id: reference-dependency-manager-dependency-map
+title: Dependency map
+slug: /reference/dependency-manager/dependency-map
+sidebar_position: 2
+---
+
+Dependency map is a plain object that describes the dependencies and satisfies the `WrapletDependencyMap` type.
+It's consumed by the `DependencyManager`. Based on a dependency map, `DependencyManager` instantiates dependencies.
+
+An example of a dependency map:
+
+```typescript
+import { type WrapletDependencyMap } from "wraplet";
+// ...
+const map = {
+    dependency1: {
+        selector: "[data-js-dependency1]",
+        Class: SomeWrapletClass,
+        multiple: false,
+        required: true,
+    },
+} satisfies WrapletDependencyMap;
+```
+
+Dependencies' ids are the keys of the map. Their values are `WrapletDependencyDefinition` objects.
+Let's explore these types.
+
+```typescript
+type WrapletDependencyMap = {
+  [id: string]: WrapletDependencyDefinition;
+};
+```
+
+## WrapletDependencyDefinition
+
+**WrapletDependencyDefinition** is a type that describes a dependency. The dependency gets instantiated based on its properties.
+
+```typescript
+type WrapletDependencyDefinition = {
+  selector?: string | SelectorCallback;
+  Class: Constructable<Wraplet>;
+  injector?: Injector;
+  required: boolean;
+  multiple: boolean;
+  args?: unknown[];
+  destructible?: boolean;
+};
+```
+
+### selector
+
+`selector` is an optional property that is there to allow the `DependencyManager` to find nodes in the DOM that need to be wrapped
+within a wraplet.
+
+It can be a string, which would be a selector used in the `document.querySelectorAll` method to find the nodes, or a callback function.
+
+```typescript
+type SelectorCallback<N extends ParentNode = ParentNode> = (
+  node: N,
+) => Node[];
+```
+
+If a callback is provided, then it has to return an array of nodes that should be wrapped. Callback is useful when you need
+elaborate logic to find the nodes.
+
+### Class
+
+`Class` is a required property storing reference to the class that will be used to instantiate the dependency.
+`DependencyManager` will create a wraplet instance using this class.
+
+It has to implement the `Wraplet` interface.
+
+### injector
+
+`injector` is an optional property allowing you to override the node injected into the wraplet.
+
+```typescript
+type Injector<
+  N extends Node = Node,
+  M extends WrapletDependencyMap = WrapletDependencyMap,
+  D = any,
+> = {
+  data?: D;
+  callback: (node: N, map: MapTreeBuilder<M>, data?: D) => unknown;
+};
+```
+
+The `callback` function returns whatever is supposed to be injected into the wraplet.
+
+The `data` property's value will be available in the callback as an argument.
+It makes it possible to make the callback configurable and the end user to alter the behavior of the callback.
+
+### required
+
+`required` is a required boolean property that indicates whether the dependency is required or not.
+
+If the dependency is required, then the `DependencyManager` will throw an error if it cannot find a node for it.
+
+If it's not required, the Wraplet's typing system will indicate the possibility of `null` value.
+
+### multiple
+
+`multiple` is a required boolean property that indicates whether dependency represents multiple instances.
+
+If its value is `true`:
+- The instances representing dependency will be available in the wraplet through a `WrapletSet`.
+- `selector` finding multiple nodes will result in multiple wraplet instances being created. One for each node.
+- If at the same time the `required` property is `true`, then if no nodes are found, an error will be thrown.
+
+If its value is `false`:
+- The dependency will be available directly as a single instance in the `dm.dependencies` object.
+- `selector` finding multiple nodes will result in an error.
+
+### args
+
+`args` is an optional array of arguments that will be passed to the instantiated wraplet as constructor arguments.
+
+These will be the second and further arguments. The first one is always provided by the `injector`.
+
+Thanks to that, the map's provider can make dependencies configurable, passing options as arguments to the created wraplets.
+
+### destructible
+
+`destructible` is an optional boolean property that indicates whether the wraplet should be destroyed with its parent, or not.
+
+By default `destructible` is `true`, so every dependency will be destroyed with their parent. However, there are cases when you
+may want to keep the dependency alive after its parent is destroyed. For example, some dependencies on already existing
+wraplets that can function also independently. In this case, you can set `destructible` on a dependency to `false`.
+
+## Examples
+
+Let's look at some live examples of dependency maps.
+
+import BrowserOnly from "@docusaurus/BrowserOnly";
+
+### Different dependencies
+
+<BrowserOnly>
+    {() => {
+        const Example = require("@site/src/components/Example").default;
+        const MonacoEditor = require("@site/src/components/MonacoEditor").default;
+
+        return (
+            <Example style="small" loadComments={false}>
+                <h4>HTML</h4>
+                <MonacoEditor contentUrl="/examples/reference/dependency-map/map-1/html.htm" language="html" height="80px" />
+                <h4>TypeScript</h4>
+                <MonacoEditor contentUrl="/examples/reference/dependency-map/map-1/typescript.txt" language="typescript" height="620px" />
+            </Example>
+        );
+    }}
+</BrowserOnly>
+
+### What happens if required dependency is missing?
+
+We'll get an error.
+
+<BrowserOnly>
+    {() => {
+        const Example = require("@site/src/components/Example").default;
+        const MonacoEditor = require("@site/src/components/MonacoEditor").default;
+
+        return (
+            <Example style="small" loadComments={false}>
+                <h4>HTML</h4>
+                <MonacoEditor contentUrl="/examples/reference/dependency-map/map-2/html.htm" language="html" height="30px" />
+                <h4>TypeScript</h4>
+                <MonacoEditor contentUrl="/examples/reference/dependency-map/map-2/typescript.txt" language="typescript" height="420px" />
+            </Example>
+        );
+    }}
+</BrowserOnly>
+
+`multiple` dependency can also be required!
+
+<BrowserOnly>
+    {() => {
+        const Example = require("@site/src/components/Example").default;
+        const MonacoEditor = require("@site/src/components/MonacoEditor").default;
+
+        return (
+            <Example style="small" loadComments={false}>
+                <h4>HTML</h4>
+                <MonacoEditor contentUrl="/examples/reference/dependency-map/map-3/html.htm" language="html" height="30px" />
+                <h4>TypeScript</h4>
+                <MonacoEditor contentUrl="/examples/reference/dependency-map/map-3/typescript.txt" language="typescript" height="420px" />
+            </Example>
+        );
+    }}
+</BrowserOnly>

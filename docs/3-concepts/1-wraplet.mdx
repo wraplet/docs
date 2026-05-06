@@ -1,0 +1,57 @@
+---
+id: wraplet
+title: Wraplet
+slug: /concepts/wraplet
+sidebar_position: 1
+---
+
+What defines a wraplet is the implementation of the **Wraplet** interface that consists of two properties:
+- The `[WrapletSymbol]` property,
+- The `wraplet` property that implements the `WrapletApi` interface.
+
+`WrapletApi` makes it possible to tie together lifecycles of multiple wraplets, allowing complex components to emerge.
+
+```typescript
+interface Wraplet {
+  [WrapletSymbol]: true;
+  wraplet: WrapletApi;
+}
+````
+
+```typescript
+interface WrapletApi {
+  [WrapletApiSymbol]: true;
+
+  status: Status;
+
+  destroy(): Promise<void>;
+
+  initialize(): Promise<void>;
+
+  addDestroyListener(callback: DestroyListener): void;
+}
+```
+
+## Examples
+
+import BrowserOnly from "@docusaurus/BrowserOnly";
+
+### A non-dependent wraplet
+
+In this example we'll create a simple custom class implementing the `Wraplet` interface without extending any other class.
+
+<BrowserOnly>
+    {() => {
+        const Example = require("@site/src/components/Example").default;
+        const MonacoEditor = require("@site/src/components/MonacoEditor").default;
+
+        return (
+            <Example style="small" loadComments={false}>
+                <h4>HTML</h4>
+                <MonacoEditor contentUrl="/examples/wraplet-api/html.htm" language="html" height="30px" />
+                <h4>TypeScript</h4>
+                <MonacoEditor contentUrl="/examples/wraplet-api/typescript.txt" language="typescript" height="620px" />
+            </Example>
+        );
+    }}
+</BrowserOnly>

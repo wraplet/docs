@@ -1,0 +1,157 @@
+import {
+    AbstractWraplet,
+    AbstractDependentWraplet,
+    type WrapletDependencyMap,
+} from "wraplet";
+
+/*
+ * Step 1
+ */
+
+class Number extends AbstractWraplet<HTMLInputElement> {
+
+    public getValue(): number {
+        return parseInt(this.node.value);
+    }
+
+    protected override supportedNodeTypes() {
+        return this.supportedNodeTypesGuard([HTMLInputElement]);
+    }
+}
+
+class Result extends AbstractWraplet<HTMLInputElement> {
+
+    public setValue(value: number): void {
+        this.node.value = value.toString();
+    }
+
+    protected override supportedNodeTypes() {
+        return this.supportedNodeTypesGuard([HTMLInputElement]);
+    }
+}
+
+class Calculate extends AbstractWraplet {
+    public addClickListener(listener: () => void) {
+        this.nodeManager.addListener("click", (e: Event) => {
+            listener();
+        });
+    }
+}
+
+/*
+ * END Step 1
+ */
+
+/*
+ * Step 2
+ */
+
+const map = {
+    numbers: {
+        selector: "[data-js-calculator-number]",
+        Class: Number,
+        required: true,
+        multiple: true,
+    },
+    result: {
+        selector: "[data-js-calculator-result]",
+        Class: Result,
+        required: true,
+        multiple: false,
+    },
+    calculate: {
+        selector: "[data-js-calculator-calculate]",
+        Class: Calculate,
+        required: true,
+        multiple: false,
+    },
+} satisfies WrapletDependencyMap;
+
+/*
+ * END Step 2
+ */
+
+/*
+ * Step 3
+ */
+
+/**
+ * Our main `Calculator` class that instantiates everything and wires
+ * it up together.
+ *
+ * Note that now we extend `AbstractDependentWraplet` abstract class
+ * instead of the `AbstractWraplet` one that we used for dependencies.
+ *
+ * `AbstractDependentWraplet` has built in dependency management,
+ * that will help us instantiate and wire up the dependencies.
+ * Details will be explained below in the class' implementation.
+ */
+class Calculator extends AbstractDependentWraplet<
+    HTMLElement,
+    // We pass the map's type into the `AbstractDependentWraplet`
+    // generic. This way the class will know its dependencies on the
+    // TypeScript's level, and we'll get neat typehints.
+    //
+    // It's a `AbstractDependentWraplet`'s feature.
+    typeof map
+> {
+
+    // All wraplets have a lifecycle.
+    // Both `AbstractWraplet` and `AbstractDependentWraplet` classes
+    // implement this lifecycle and allow you to hook into it by
+    // overriding specific protected methods. There are two main
+    // lifecycle methods available: `onInitialize` and `onDestroy`.
+    // Lifecycle changes propagate across the dependencies, so if
+    // the dependent wraplet gets initialized, all its dependencies
+    // will also get initialized. The same goes with destruction.
+    //
+    // Here we wire up all dependencies to get our final logic
+    // during our main wraplet's initialization. When this runs
+    // dependencies are already initialized: they get initialized
+    // first.
+    protected override async onInitialize() {
+        // `this.d` property is provided by the
+        // `AbstractDependentWraplet` and gives you access to the
+        // instantiated dependencies.
+        //
+        // Note the neat typehints for the keys of `this.d` you
+        // have available thanks to the passing map as a type to a
+        // generic `AbstractDependentWraplet`.
+        this.d.calculate.addClickListener(() => {
+            let sum = 0;
+
+            // Because we defined the "numbers" dependency as
+            // "multiple" in the map, we have a WrapletSet with
+            // multiple wraplets available. Thankfully, we can iterate
+            // over it to aggregate and sum up all the values.
+            for (const nmbr of this.d.numbers) {
+                sum += nmbr.getValue();
+            }
+
+            this.d.result.setValue(sum);
+        });
+    }
+
+    // This is a helper method for quickly instantiating and
+    // initializing all calculators found in the document.
+    public static async create(attribute: string) {
+        // `createAndInitializeDependentWraplets` method is provided
+        // by the `AbstractDependentWraplet` to simplify instantiation
+        // and initialization.
+        //
+        // It needs:
+        // 1. ParentNode to search for calculators in.
+        // 2. An attribute marking an element that represents our
+        //    calculator. This element is an ancestor
+        //    of all instantiated dependencies.
+        // 3. Dependency map to know how to find nodes for
+        //    dependencies, how to wrap them, and how to expose
+        //    wraplets wrapping these nodes.
+
+        return this.createAndInitializeDependentWraplets(
+            document,
+            attribute,
+            map,
+        );
+    }
+}

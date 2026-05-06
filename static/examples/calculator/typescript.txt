@@ -1,0 +1,208 @@
+import { AbstractWraplet, AbstractDependentWraplet, type WrapletDependencyMap } from "wraplet";
+
+// This is a simple calculator example.
+
+// We'll organize our code into groups, starting with...
+
+/**
+ * Dependency classes
+ */
+
+// This class will manage a single number field.
+//
+// "AbstractWraplet" abstract class is a thin helper for interacting with a Node.
+//
+// It implements Dependency API making it possible to be tied to the top wraplet's lifecycle.
+//
+// Notice that the type passed to it determines the type of the "this.node"
+// we are interacting with. The node in question is a node this class is supposed to wrap.
+//
+// It will be injected into this class' constructor when we'll instantiate our dependency tree.
+class Number extends AbstractWraplet<HTMLInputElement> {
+
+    // This method allows us to access the value of the wrapped HTMLInputElement.
+    //
+    // It's an interface for interacting with the injected Node, making it easy to see
+    // how node (that has a lot of unused properties) is actually used in our program.
+    public getValue(): number {
+        return parseInt(this.node.value);
+    }
+
+    // This method makes sure that the injected node is of proper type.
+    //
+    // When we depend on some of the node's properties it's good to make sure
+    // that we validate it, to get an early error if dependency map will be misconfigured
+    // in such a way, that the class will be instantiated with a wrong node-type.
+    //
+    // In this case we depend on the HTMLInputElement's "value" property, so we make sure
+    // that no other node-type can be injected.
+    protected override supportedNodeTypes() {
+        return this.supportedNodeTypesGuard([HTMLInputElement]);
+    }
+}
+
+// This class will manage the result field.
+class Result extends AbstractWraplet<HTMLInputElement> {
+
+    // This tells us that our program only sets the value of the result field.
+    public setValue(value: number): void {
+        this.node.value = value.toString();
+    }
+
+    protected override supportedNodeTypes() {
+        return this.supportedNodeTypesGuard([HTMLInputElement]);
+    }
+}
+
+// This class will manage the "Calculate" button.
+class Calculate extends AbstractWraplet {
+    // We don't want to expose the "Event" object to the method's user.
+    // Keeping APIs as minimal as possible.
+    public addClickListener(listener: () => void) {
+        // We register our event listeners in the nodeManager. NodeManager is hooked into the wraplet's lifecycle
+        // in such a way that all listeners added this way will be automatically removed from the element during the
+        // wraplet's destruction.
+        this.nodeManager.addListener("click", (e: Event) => {
+            listener();
+        });
+    }
+}
+
+/**
+ * Dependency map
+ */
+
+// This is a dependency map. It does few things.
+// 1. Based on the map a Dependency Manager can automatically instantiate all dependencies and make them available
+//    to the top wraplet.
+// 2. It gives our top wraplet information about types of its dependencies.
+//
+// That's right. We will use it twice. Once for its values, and second for its types. That way our
+// types will always correctly represent our actual data.
+//
+// Let's see how the dependency map's structure looks like.
+const map = {
+
+    numbers: {
+        selector: "[data-js-calculator-number]",
+        Class: Number,
+        required: true,
+        // We assume multiple number fields. This way we will be able to add more fields to the HTML and they will
+        // be automatically handled.
+        multiple: true,
+    },
+
+    result: {
+        selector: "[data-js-calculator-result]",
+        Class: Result,
+        required: true,
+        multiple: false,
+    },
+
+    calculate: {
+        selector: "[data-js-calculator-calculate]",
+        Class: Calculate,
+        required: true,
+        multiple: false,
+    },
+
+} satisfies WrapletDependencyMap;
+
+// The map is self-explanatory. It describes the structure of our overall component.
+//
+// "numbers", "result" and "calculate" are its dependencies. They represent children wraplets,
+// providing specific functionalities we'll be using to achieve our desired result. The main component is also
+// a wraplet - the one with dependencies. Dependencies can also have their own dependencies; however, for readability's sake
+// it's best to keep a dependency tree as flat as possible. In this example we have only a single level of dependencies.
+//
+// Each wraplet wraps a single document's Node providing an "API" for interacting with it.
+// Kind of similar to Web Components, however, Wraplet doesn't depend on Web Components and does much more than them.
+//
+// The final result is that our top wraplet's Dependency Manager will automatically find proper nodes based on
+// the selectors from the map, then it will initialize its dependencies as classes from the map, wire them up, and delivers
+// the desired functionality.
+//
+// Thanks to the Dependency API, the children wraplets will be tied to the top wraplet: they will share its lifecycle.
+// At the same time, they can be treated as independent subcomponents. They can be tested independently of the top wraplet,
+// and so on.
+//
+// There is an interesting thing to consider: because our component structure is based on a map,
+// we can use this system to write libraries that allow to customize their maps. It would make it possible to override every class
+// they use with custom implementation for ultimate flexibility! But let's not get ahead of ourselves.
+
+/**
+ * Top wraplet
+ */
+
+// This is our top wraplet that will wire up everything.
+//
+// The "AbstractDependentWraplet" abstract class is different from the "AbstractWraplet" - it interacts with its node
+// through the Dependency Manager that is injected instead.
+//
+// You may instantiate and inject Dependency Manager manually, but you may also simplify its instantiation by using
+// the AbstractDependentWraplet's static methods. That's what we'll do here.
+//
+// Note that we inject both "HTMLElement" and "typeof map" into AbstractDependentWraplet generic.
+// 1. "HTMLElement" is a type of the element our top wraplet is supposed to wrap. It's the same thing we saw in the "AbstractWraplet".
+// 2. The second argument is the type of our map. After all dependencies will be wired up, we need proper typehints and typechecks
+//    to interact with them. These are extracted from the map itself, so you know they are always up to date!
+class Calculator extends AbstractDependentWraplet<HTMLElement, typeof map> {
+
+
+    protected override async onInitialize() {
+        // We add a click listener to the "calculate" button. Basically, we are wiring up our dependencies.
+        //
+        // Note that we didn't give ourselves direct access to the dependency's element.
+        // We exposed only the minimum needed by the top wraplet. Keeping APIs minimal makes code cleaner.
+        this.d.calculate.addClickListener(() => {
+            let sum = 0;
+
+            // All dependencies are available in the "this.d" property for convenience.
+            //
+            // this.d.numbers is automatically iterable because we defined "multiple: true" in the "numbers" dependency map item.
+            // To increase the number of number fields, we can just add more of the same elements to the HTML and everything will work.
+            for (const nmbr of this.d.numbers) {
+                sum += nmbr.getValue();
+            }
+
+            this.d.result.setValue(sum);
+        });
+    }
+
+    // This is a static helper method for creating our calculators.
+    // It instantiates, initializes, and returns resulting instances.
+    public static async create(parentNode: ParentNode) {
+        // The difference between instantiation and initialization is that instantiation is always synchronous. However,
+        // some wraplets may need data that is available only asynchronously. The asynchronous "initialization" phase covers
+        // that.
+        //
+        // This is a handy helper method that does both.
+        return this.createAndInitializeDependentWraplets(parentNode, "data-js-calculator", map);
+    }
+}
+
+/**
+ * Creating calculators.
+ */
+
+// Let's create calculators.
+const calculators = await Calculator.create(document);
+
+// If you would rather like to instantiate calculator in the document manually, you could do this like this:
+//
+//const element: HTMLElement = document.querySelector("[data-js-calculator]");
+//const dm = new DDM(element, map);
+//const calculator = new Calculator(dm);
+//await calculator.wraplet.initialize();
+//
+// The static method is a helper that makes it easier, and it instantiates as many calculators as many proper elements
+// it can find.
+
+
+
+// Now everything is instantiated AND initialized!
+//
+// This was just a simple example, but the resulting structure allows for a very clean separation of
+// concerns.
+//
+// Remember that you can freely edit this code to experiment and see available typehints. It's a live demo!

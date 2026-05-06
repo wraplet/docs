@@ -1,0 +1,37 @@
+import { AbstractWraplet } from "wraplet";
+
+class ExampleWraplet extends AbstractWraplet<HTMLElement> {
+    protected override async onInitialize() {
+        this.node.innerHTML = "Click me!";
+
+        // `this.nodeManager` is provided by the `AbstractWraplet`.
+        // It helps with managing the node's listeners in a
+        // lifecycle-aware way.
+        //
+        // It's better to use it than manually attaching a listener
+        // to the node because listeners added through the NodeManager
+        // will get automatically removed during the wraplet's
+        // destruction.
+        this.nodeManager.addListener("click", () => {
+            this.node.innerHTML = "Clicked!";
+            this.node.style.backgroundColor = "yellow";
+        });
+    }
+
+    // Here we can do our own cleanup after the wraplet is no longer
+    // needed.
+    protected override async onDestroy() {
+        this.node.innerHTML = "Destroyed.";
+    }
+}
+
+const element: HTMLElement = document.querySelector("[data-js-example]");
+
+const example = new ExampleWraplet(element);
+
+await example.wraplet.initialize();
+
+// When you uncomment the next line, the listener will stop
+// working, indicating that it has been removed from the node.
+//
+// await example.wraplet.destroy();

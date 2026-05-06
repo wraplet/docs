@@ -1,0 +1,87 @@
+---
+id: tutorial-character-counter
+title: Character counter
+slug: /getting-started/tutorials/character-counter
+sidebar_position: 1
+---
+
+In this tutorial we'll create a simple character counter.
+
+import BrowserOnly from "@docusaurus/BrowserOnly";
+
+## Step 1
+
+<BrowserOnly>
+    {() => {
+        const Example = require("@site/src/components/Example").default;
+        const MonacoEditor = require("@site/src/components/MonacoEditor").default;
+
+        return (
+            <Example style="small" loadComments={false}>
+                <h4>HTML</h4>
+                <p>We will start with creating an HTML structure with all the elements we need.</p>
+                <MonacoEditor contentUrl="/examples/tutorials/character-counter/character-counter-1/html.htm" language="html" height="330px"/>
+                <h4>TypeScript</h4>
+                <p>Then we'll create wraplet classes for them.</p>
+                <MonacoEditor contentUrl="/examples/tutorials/character-counter/character-counter-1/typescript.txt" language="typescript" height="540px" />
+            </Example>
+        );
+    }}
+</BrowserOnly>
+
+## Step 2
+
+<BrowserOnly>
+    {() => {
+        const Example = require("@site/src/components/Example").default;
+        const MonacoEditor = require("@site/src/components/MonacoEditor").default;
+
+        return (
+            <Example style="small" loadComments={false}>
+                <h4>HTML</h4>
+                <MonacoEditor contentUrl="/examples/tutorials/character-counter/character-counter-2/html.htm" language="html" height="330px"/>
+                <h4>TypeScript</h4>
+                <p>We created our main wraplet that will wire up everything.</p>
+                <MonacoEditor contentUrl="/examples/tutorials/character-counter/character-counter-2/typescript.txt" language="typescript" height="540px" />
+            </Example>
+        );
+    }}
+</BrowserOnly>
+
+## Step 3
+
+<BrowserOnly>
+    {() => {
+        const Example = require("@site/src/components/Example").default;
+        const MonacoEditor = require("@site/src/components/MonacoEditor").default;
+
+        return (
+            <Example style="small" loadComments={false}>
+                <h4>HTML</h4>
+                <MonacoEditor contentUrl="/examples/tutorials/character-counter/character-counter-3/html.htm" language="html" height="330px"/>
+                <h4>TypeScript</h4>
+                <p>We added a dependency map describing everything we'll be using.</p>
+                <MonacoEditor contentUrl="/examples/tutorials/character-counter/character-counter-3/typescript.txt" language="typescript" height="540px" />
+            </Example>
+        );
+    }}
+</BrowserOnly>
+
+## Final result
+
+<BrowserOnly>
+    {() => {
+        const Example = require("@site/src/components/Example").default;
+        const MonacoEditor = require("@site/src/components/MonacoEditor").default;
+
+        return (
+            <Example style="small" loadComments={false}>
+                <h4>HTML</h4>
+                <MonacoEditor contentUrl="/examples/tutorials/character-counter/character-counter-final/html.htm" language="html" height="330px"/>
+                <h4>TypeScript</h4>
+                <p>Now we can instantiate and initialize our main wraplet and the whole behavior will awake.</p>
+                <MonacoEditor contentUrl="/examples/tutorials/character-counter/character-counter-final/typescript.txt" language="typescript" height="540px" />
+            </Example>
+        );
+    }}
+</BrowserOnly>

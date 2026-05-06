@@ -1,0 +1,152 @@
+---
+id: reference-abstract-dependent-wraplet
+title: AbstractDependentWraplet
+slug: /reference/abstract-dependent-wraplet
+sidebar_position: 1
+---
+
+`AbstractDependentWraplet` is a helper abstract class for creating custom, dependent wraplets.
+
+It extends `AbstractWraplet` so it has the same methods available, and some more.
+
+We'll skip the methods that are already covered on the `AbstractWraplet` page, and list only
+the methods that are specific to the `AbstractDependentWraplet`.
+
+```typescript
+abstract class AbstractDependentWraplet<
+  N extends Node = Node,
+  M extends WrapletDependencyMap = {},
+> {
+```
+
+## Properties and methods
+
+### constructor
+
+```typescript
+constructor(protected dm: DependencyManager<N, M>) {
+```
+
+Note that the constructor is different compared to the `AbstractWraplet`.
+Here we inject a `DependencyManager` instance instead of a `Node`.
+`DependencyManager` wraps the `Node` and provides dependency management:
+it can search for descendant nodes and instantiate dependent wraplets based
+on the dependency map provided.
+
+### d
+
+```typescript
+protected get d(): WrapletDependencies<M> {
+```
+
+This property getter is a handy shortcut to access the dependencies managed by the `DependencyManager`.
+
+### static createDependencyManager
+
+```typescript
+protected static createDependencyManager<
+  N extends Node,
+  M extends WrapletDependencyMap,
+>(node: N, map: M): DependencyManager<N, M> {
+```
+
+This method allows you to override the default `DependencyManager` instantiation.
+
+It's true that `DependencyManager` gets injected into the constructor, but there are also
+static methods helping with `AbstractDependentWraplet` instantiation that will be covered later.
+They use this method to instantiate the `DependencyManager`.
+
+### ~~static createWraplets~~
+
+This is a method from the `AbstractWraplet` class, that is not supported in `AbstractDependentWraplet`
+and will throw an error when called.
+
+This is because `AbstractDependentWraplet` has different constructor arguments and needs its own helper methods
+for instantiation.
+
+### ~~static createAndInitializeWraplets~~
+
+This is a method from the `AbstractWraplet` class, that is not supported in `AbstractDependentWraplet`
+and will throw an error when called.
+
+This is because `AbstractDependentWraplet` has different constructor arguments and needs its own helper methods
+for instantiation.
+
+### static createDependentWraplets
+
+```typescript
+  protected static createDependentWraplets<
+    T extends abstract new (
+      ddm: any,
+      ...args: any[]
+    ) => AbstractDependentWraplet<any, any>,
+  >(
+    this: T,
+    node: ParentNode,
+    attribute: string,
+    map: WrapletDependencyMap,
+    additional_args: unknown[] = [],
+  ): InstanceType<T>[] {
+```
+
+This is a dedicated helper for instantiation of the class extending the `AbstractDependendWraplet`.
+
+It is similar to the `createWraplets` method from the `AbstractWraplet` class, but it has an additional
+argument: a `WrapletDependencyMap` object.
+
+`WrapletDependencyMap` allows `AbstractDependentWraplet` to instantiate a `DependencyManager` that will instantiate
+dependencies based on the provided map.
+
+Definition of the `createDependentWraplets`  looks complex, but it's actually quite simple to use.
+
+You can use it like this:
+
+```typescript
+public static create() {
+    return this.createDependentWraplets(document, "data-js-mywraplet", dependencyMap);
+}
+```
+
+It will instantiate and return a wraplet for each element with the "data-js-mywraplet" attribute in the document.
+
+The complexity of its definition comes from the fact that it's very clever: the above `create` method we implemented
+has an implicit return type that is an array of instances of a wraplet that implements it. So, less writing for us.
+
+#### Under the hood
+
+What happens in the `createDependentWraplets` method is that:
+1. `createDependentWraplets` looks in the provided `ParentNode` for elements with the provided attribute.
+2. For each element found it creates a `DDM` instance (implementation of the `DependencyManager`).
+   During its instantiation, `createDependentWraplets` injects the found node and the dependency map.
+3. For each `DDM` instance created an instance of the current class is instantiated and `DDM` is injected into it as the first argument.
+   This way multiple dependent wraplets are created, sharing the same dependency map but applying it to a different
+   element.
+4. When current class is being instantiated `AbstractDependentWraplet`'s constructor orders `DependencyManager` to instantiate
+   dependencies (synchronously).
+5. An array of instances of the current class is returned.
+
+### static async createAndInitializeDependentWraplets
+
+```typescript
+  protected static async createAndInitializeDependentWraplets<
+    T extends {
+      new (ddm: any, ...args: any[]): AbstractDependentWraplet<any, any>;
+    },
+  >(
+    this: T,
+    node: ParentNode,
+    attribute: string,
+    map: WrapletDependencyMap,
+    additional_args: unknown[] = [],
+  ): Promise<InstanceType<T>[]> {
+```
+
+This one is similar to the `createDependentWraplets` method, but it also initializes the wraplets before
+returning them.
+
+#### Under the hood
+
+The same thing that happens in the `createDependentWraplets` method, with one additional step:
+1. Each instance of the current class is initialized (asynchronously).
+
+As a consequence of introducing asynchronicity, a promise is returned that resolves to an array of initialized instances.

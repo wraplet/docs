@@ -1,0 +1,242 @@
+import {
+    AbstractWraplet,
+    AbstractDependentWraplet,
+    DDM,
+    type WrapletDependencyMap,
+} from "wraplet";
+
+/*
+ * Dependencies.
+ *
+ * The recipe builds a recursive accordion: every accordion item's body
+ * may contain another accordion. Each piece of UI is wrapped in its
+ * own small wraplet with a minimal, intention-revealing API:
+ *
+ * - Accordion       - the container that owns its items and decides
+ *                     that only one item should be open at a time.
+ * - AccordionItem   - a single expandable item; owns a button and a body.
+ * - AccordionButton - the clickable header of an item.
+ * - AccordionBody   - the collapsible content area; handles animation.
+ */
+
+class Accordion extends AbstractDependentWraplet<
+    HTMLElement,
+    typeof accordionMap
+> {
+    // Static helper that finds every "data-js-accordion" element under
+    // the given parent node and instantiates + initializes a fully
+    // wired Accordion wraplet for each one.
+    public static async create(
+        node: ParentNode = document
+    ): Promise<Accordion[]> {
+        return await this.createAndInitializeDependentWraplets(
+            node,
+            "data-js-accordion",
+            accordionMap,
+        );
+    }
+}
+
+class AccordionItem extends AbstractDependentWraplet<
+    HTMLElement,
+    typeof accordionItemMap
+> {
+    public close() {
+        this.d.body.close();
+        // We set "open" class on the AccordionItem's node instead of the
+        // AccordionBody's.
+        // This gives us more styling flexibility as we can use it to dynamically
+        // style also the button.
+        this.node.classList.remove("open");
+    }
+
+    public open() {
+        this.d.body.open();
+        this.node.classList.add("open");
+    }
+
+    protected override async onInitialize() {
+        // "body" is declared as required in the dependency
+        // map (required: true), so we don't have to check for it.
+        if (this.d.button) {
+            this.d.button.addClickListener(() => {
+                const body = this.d.body;
+                if (body.isOpen()) {
+                    this.close();
+                } else {
+                    this.open();
+                }
+            });
+        }
+    }
+}
+
+class AccordionButton extends AbstractWraplet<HTMLAnchorElement> {
+    public addClickListener(callback: () => void) {
+        // Listeners registered through the NodeManager are tied to the
+        // wraplet's lifecycle and removed automatically on destroy().
+        this.nodeManager.addListener("click", callback);
+    }
+}
+
+class AccordionBody extends AbstractDependentWraplet<
+    HTMLElement,
+    typeof accordionBodyMap
+> {
+    // Opening and closing rely on a CSS height transition. Because
+    // "height: auto" cannot be animated, we have to translate it into
+    // an explicit pixel value just for the duration of the animation.
+    public open() {
+        const node = this.node;
+        // Temporarily switch to "auto" to measure the natural height...
+        node.style.height = "auto";
+        const destHeight = node.scrollHeight;
+        // ...then snap back to 0 so the browser has a starting point...
+        node.style.height = "0px";
+        // ...and on the next frame animate to the measured height.
+        requestAnimationFrame(() => {
+            node.style.height = destHeight + "px";
+        });
+    }
+
+    public close(): void {
+        const node = this.node;
+        // Going the other way: pin the current height in pixels so the
+        // browser has a value to animate FROM, then animate to 0.
+        const height = node.scrollHeight;
+        node.style.height = height + "px";
+        requestAnimationFrame(() => {
+            node.style.height = "0px";
+        });
+    }
+
+    public isOpen(): boolean {
+        // We treat any non-empty, non-zero height as "open". This works
+        // both during the animation and after it settles on "auto".
+        return !!this.node.style.height && this.node.style.height !== "0px";
+    }
+
+    protected override async onInitialize() {
+        this.nodeManager.addListener(
+        "transitionend",
+        (e: TransitionEvent) => {
+            // The body may contain other animated elements whose
+            // transitions also bubble up here - ignore them.
+            if (e.target !== this.node) return;
+            if (e.propertyName !== "height") return;
+
+            // Once the open animation finishes, switch back to "auto"
+            // so the body can grow with its content (e.g. when a nested
+            // accordion is expanded inside it).
+            if (this.isOpen()) {
+              this.node.style.height = "auto";
+            }
+        }
+        );
+    }
+}
+
+/*
+ * Dependency map.
+ *
+ * The dependency structure is as follows:
+ *
+ * [ Accordion ] <-- [ AccordionItem ] <-- [ AccordionBody ] <-- (repeats)
+ *                                  ^
+ *                                   `---- [ AccordionButton ]
+ *
+ * Every "selector" below uses a function that filters direct children
+ * only. This is essential for nested accordions: a plain CSS selector
+ * like "[data-js-accordion__item]" would also match items belonging to
+ * inner accordions, breaking the parent/child boundary.
+ */
+
+const accordionBodyMap = {
+    accordion: {
+        selector: (node) => {
+            return Array.from(node.children).filter((dependency) =>
+                dependency.hasAttribute(
+                    "data-js-accordion__accordion"
+                ),
+            );
+        },
+        Class: Accordion,
+        // Optional, because the deepest body in the tree won't contain
+        // another accordion - and we don't know upfront how deep it goes.
+        required: false,
+        multiple: false,
+        // Repeats the three segments of the map recursively.
+        //
+        // The number tells the injector to "go up 3 levels" and reuse
+        // that map, which is exactly the depth of one full
+        // Accordion -> AccordionItem -> AccordionBody cycle.
+        injector: DDM.createInjector(3),
+    },
+} satisfies WrapletDependencyMap;
+
+const accordionItemMap = {
+    button: {
+        selector: (node) => {
+            return Array.from(node.children).filter((dependency) =>
+                dependency.hasAttribute(
+                    "data-js-accordion__button"
+                ),
+            );
+        },
+        Class: AccordionButton,
+        multiple: false,
+        required: true,
+    },
+    body: {
+        selector: (node) => {
+            return Array.from(node.children).filter((dependency) =>
+                dependency.hasAttribute(
+                    "data-js-accordion__body"
+                ),
+            );
+        },
+        Class: AccordionBody,
+        multiple: false,
+        required: true,
+        // The body's own dependency map is finite (it just declares
+        // a possible nested accordion), so we inject it directly.
+        injector: DDM.createInjector(accordionBodyMap),
+    },
+} satisfies WrapletDependencyMap;
+
+const accordionMap: {
+    // First wraplet depends on the map referencing the second wraplet,
+    // and the second wraplet depends on the map referencing the first
+    // one. This circular dependency makes TypeScript confused.
+    //
+    // Fortunately, this type clarification breaks the confusion.
+    // We only care about the "Class", "required" and "multiple"
+    // properties' types, as they are used to define dependency.
+    accordionItem: {
+        selector: any,
+        injector: any,
+        Class: typeof AccordionItem,
+        required: true,
+        multiple: true,
+    },
+} = {
+    accordionItem: {
+        selector: (node) => {
+            return Array.from(node.children).filter((dependency) =>
+                dependency.hasAttribute(
+                    "data-js-accordion__item"
+                ),
+            );
+        },
+        Class: AccordionItem,
+        // Items are required + multiple: an accordion needs at least one item.
+        required: true,
+        multiple: true,
+        injector: DDM.createInjector(accordionItemMap),
+    },
+} satisfies WrapletDependencyMap;
+
+// Find every top-level [data-js-accordion] in the document and wire up
+// the whole nested tree underneath it. Recursion in the dependency
+// maps takes care of arbitrarily deep nesting.
+const accordions = await Accordion.create();

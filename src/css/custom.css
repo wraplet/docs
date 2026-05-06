@@ -1,0 +1,59 @@
+/**
+ * Any CSS included here will be global. The classic template
+ * bundles Infima by default. Infima is a CSS framework designed to
+ * work well for content-centric websites.
+ */
+
+/* You can override the default Infima variables here. */
+:root {
+  --ifm-color-primary: #2e8555;
+  --ifm-color-primary-dark: #29784c;
+  --ifm-color-primary-darker: #277148;
+  --ifm-color-primary-darkest: #205d3b;
+  --ifm-color-primary-light: #33925d;
+  --ifm-color-primary-lighter: #359962;
+  --ifm-color-primary-lightest: #3cad6e;
+
+  /* Secondary (blue) — harmonizes with the green primary in light mode */
+  --color-secondary: #2b6cb0;
+  --color-secondary-dark: #255a96;
+  --color-secondary-darker: #214f85;
+  --color-secondary-darkest: #1b406c;
+  --color-secondary-light: #7bbdff;
+  --color-secondary-lighter: #99ccff;
+  --color-secondary-lightest: #d3e8ff;
+
+  --ifm-code-font-size: 95%;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+}
+
+.help-text {
+  font-size: 0.85rem;
+  color: var(--ifm-color-emphasis-700); /* Noticeable but still distinct from main headers */
+}
+
+.bordered {
+  border: 1px solid lightgray;
+}
+
+.homepage-demo {}
+.homepage-demo h2 {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-top: 1rem;
+}
+
+.statement {
+  background-color: var(--color-secondary-lightest);
+  border-left: 8px solid var(--color-secondary-light);
+  border-radius: 8px;
+  padding: 1rem;
+  margin: 1.5rem 0;
+  font-style: italic;
+  font-size: 1rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.statement > p:last-child {
+  margin: 0;
+}

@@ -1,0 +1,137 @@
+---
+id: reference-dependency-manager-examples
+title: Examples
+slug: /reference/dependency-manager/examples
+sidebar_position: 3
+---
+
+import BrowserOnly from "@docusaurus/BrowserOnly";
+
+## DependencyManager usage with wraplets
+
+### DependencyManager used implicitly with wraplet
+
+The default Dependency Manager implementation provided by the Wraplet library is called `Core`.
+
+`AbstractDependentWraplet` uses this implementation implicitly
+when you instantiate your wraplets with AbstractDependentWraplet's protected methods.
+
+For example:
+
+<BrowserOnly>
+    {() => {
+        const Example = require("@site/src/components/Example").default;
+        const MonacoEditor = require("@site/src/components/MonacoEditor").default;
+
+        return (
+            <Example style="small" loadComments={false}>
+                <h4>HTML</h4>
+                <MonacoEditor contentUrl="/examples/dependency-manager/ddm-1/html.htm" language="html" height="70px" />
+                <h4>TypeScript</h4>
+                <MonacoEditor contentUrl="/examples/dependency-manager/ddm-1/typescript.txt" language="typescript" height="620px" />
+            </Example>
+        );
+    }}
+</BrowserOnly>
+
+### DependencyManager used explicitly with wraplet
+
+<BrowserOnly>
+    {() => {
+        const Example = require("@site/src/components/Example").default;
+        const MonacoEditor = require("@site/src/components/MonacoEditor").default;
+
+        return (
+            <Example style="small">
+                <h4>HTML</h4>
+                <MonacoEditor contentUrl="/examples/dependency-manager/ddm-2/html.htm" language="html" height="70px" />
+                <h4>TypeScript</h4>
+                <MonacoEditor contentUrl="/examples/dependency-manager/ddm-2/typescript.txt" language="typescript" stripComments={true} height="620px" />
+            </Example>
+        );
+    }}
+</BrowserOnly>
+
+## Dependency maps
+
+### Nested dependent wraplets
+
+<BrowserOnly>
+    {() => {
+        const Example = require("@site/src/components/Example").default;
+        const MonacoEditor = require("@site/src/components/MonacoEditor").default;
+
+        return (
+            <Example style="small">
+                <h4>HTML</h4>
+                <MonacoEditor contentUrl="/examples/dependency-manager/ddm-3/html.htm" language="html" height="70px" />
+                <h4>TypeScript</h4>
+                <MonacoEditor contentUrl="/examples/dependency-manager/ddm-3/typescript.txt" language="typescript" stripComments={true} height="620px" />
+            </Example>
+        );
+    }}
+</BrowserOnly>
+
+### Recursive dependent wraplets
+
+This one is tricky because TypeScript doesn't really like
+recursion, but it's doable!
+
+1. Note that all dependencies are optional. This is required
+   because we don't know how deep the dependency tree is.
+2. Note that the `DDM.createInjector` in the `containerMap`
+   function gets a number as the argument. This number references
+   the map's ancestor relative to the current map.
+   It basically allows a map to be recursive. `2` means
+   that we repeat the last 2 levels of the map.
+3. Note that dependency maps have to be additionally statically
+   typed. This is because TypeScript doesn't really like
+   recursion, and needs a bit more guidance to figure out
+   all the types here.
+
+<BrowserOnly>
+    {() => {
+        const Example = require("@site/src/components/Example").default;
+        const MonacoEditor = require("@site/src/components/MonacoEditor").default;
+
+        return (
+            <Example style="small">
+                <h4>CSS</h4>
+                <MonacoEditor contentUrl="/examples/dependency-manager/ddm-4/style.css" language="css" height="80px" />
+                <h4>HTML</h4>
+                <MonacoEditor contentUrl="/examples/dependency-manager/ddm-4/html.htm" language="html" height="220px" />
+                <h4>TypeScript</h4>
+                <MonacoEditor contentUrl="/examples/dependency-manager/ddm-4/typescript.txt" language="typescript" stripComments={true} height="620px" />
+            </Example>
+        );
+    }}
+</BrowserOnly>
+
+## Advanced dependency management
+
+### Injecting external dependency
+
+In this example we assume that we already have an initialized dependency, and we want to inject it into our wraplet.
+
+There are other methods for injecting existing dependencies possible:
+- Using a setter on an already instantiated wraplet.
+  This one has a drawback that the dependency in the map would have to be set as optional
+  because the wraplet would be instantiated without it, and only injecter later.
+- Injecting the dependency in the constructor and keeping a reference to it in a custom property.
+  This is fine, but it bypasses the dependency manager and its features.
+
+<BrowserOnly>
+    {() => {
+        const Example = require("@site/src/components/Example").default;
+        const MonacoEditor = require("@site/src/components/MonacoEditor").default;
+
+        return (
+            <Example style="small">
+                <h4>HTML</h4>
+                <MonacoEditor contentUrl="/examples/inject-external-dependency/html.htm" language="html" height="220px" />
+                <h4>TypeScript</h4>
+                <MonacoEditor contentUrl="/examples/inject-external-dependency/typescript.txt" language="typescript" stripComments={true} height="620px" />
+            </Example>
+        );
+    }}
+</BrowserOnly>

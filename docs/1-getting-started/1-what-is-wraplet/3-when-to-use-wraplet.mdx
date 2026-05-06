@@ -1,0 +1,44 @@
+---
+id: when-to-use-wraplet
+title: When to use Wraplet
+slug: /getting-started/what-is-wraplet/when-to-use-wraplet
+sidebar_position: 3
+---
+
+Wraplet is at its best when a team needs structure close to the DOM, not a complete rewrite of the frontend stack.
+
+## Best-fit scenarios
+
+Wraplet is designed for:
+1. New backend-rendered applications.
+2. Existing frontend codebases where the interface already exists in the DOM, but the JavaScript or TypeScript layer needs more structure.
+3. Libraries that want to easily attach themselves to existing DOM elements.
+4. Libraries that look for a clean OOP structure, with a bonus of allowing developers to override every part of their structure for extra flexibility.
+
+Typical situations include:
+
+- CMSs are often backend-rendered which makes them a great fit,
+- larger services with legacy frontend code,
+- projects that need progressive modernization.
+- libraries that give functionality to backend-rendered HTML.
+
+## Why it fits progressive architecture
+
+Wraplet does not force a full migration to a single rendering model. You can introduce it selectively in the parts of the interface that need more order, stronger relationships, or a clearer lifecycle.
+
+This makes it valuable for teams that:
+
+- want to improve code quality step by step,
+- cannot justify a full UI rebuild,
+- need architecture without excessive framework overhead.
+
+## Key expectations
+
+Wraplet should be approached as:
+
+- an architectural framework for working with the DOM,
+- a component model with lifecycle and dependencies,
+- a tool for introducing order without a full rewrite.
+
+It should not be approached as a universal replacement for every SPA framework.
+

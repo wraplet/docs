@@ -1,0 +1,74 @@
+---
+id: when-to-use-what
+title: When to use what
+slug: /getting-started/when-to-use-what
+sidebar_position: 5
+---
+
+<table>
+    <thead>
+        <th>What I want to do</th>
+        <th>What should I use</th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+                I want to wrap a single node and manage its lifecycle
+            </td>
+            <td>
+                - Concept: [AbstractWraplet](/docs/concepts/abstract-wraplet)
+                - Reference: [AbstractWraplet](/docs/reference/abstract-wraplet)
+            </td>
+        </tr>
+        <tr>
+            <td>I want to coordinate subcomponents under a single root node</td>
+            <td>
+                - Concept: [AbstractDependentWraplet](/docs/concepts/abstract-wraplet#abstractdependentwraplet)
+                - Reference: [AbstractDependentWraplet](/docs/reference/abstract-dependent-wraplet)
+            </td>
+        </tr>
+        <tr>
+            <td>I want to find DOM nodes and wrap them in wraplets automatically</td>
+            <td>
+                Helpers `create...Wraplets`
+
+                AbstractWraplet:
+                - [createWraplets](/docs/reference/abstract-wraplet#static-createwraplets)
+                - [createAndInitializeWraplets](/docs/reference/abstract-wraplet#static-async-createandinitializewraplets)
+
+                AbstractDependentWraplet:
+                - [createDependentWraplets](/docs/reference/abstract-dependent-wraplet#static-createdependentwraplets)
+                - [createAndInitializeDependentWraplets](/docs/reference/abstract-dependent-wraplet#static-async-createandinitializedependentwraplets)
+            </td>
+        </tr>
+        <tr>
+            <td>I want safe DOM event listener management</td>
+            <td>
+                - Concept: [NodeManager](/docs/concepts/node-manager)
+            </td>
+        </tr>
+        <tr>
+            <td>I want to inject an existing wraplet instance into a dependent wraplet</td>
+            <td>
+                - Concept: [DependencyManager](/docs/concepts/dependency-manager)
+                - Reference: [setExistingInstance](/docs/reference/dependency-manager#setexistinginstance)
+                - Reference: [addExistingInstance](/docs/reference/dependency-manager#addexistinginstance)
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+
+## AbstractWraplet vs AbstractDependentWraplet
+
+Use `AbstractWraplet` when:
+- you wrap a single DOM node,
+- you don't need dependencies,
+- you want to add a lifecycle to a single DOM node,
+- you want to create a small component like: input, button or output.
+
+Use `AbstractDependentWraplet` when:
+- component has an internal structure,
+- you need dependencies,
+- you want to declaratively search for child elements,
+- you want to automate children's lifecycle management.

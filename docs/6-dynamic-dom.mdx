@@ -1,0 +1,57 @@
+---
+id: dynamic-dom
+title: Dynamic DOM
+slug: /dynamic-dom
+sidebar_position: 6
+---
+## Problem
+
+Dynamic manipulation of the DOM tree is a very common need.
+- In admin panels there are often dynamic forms that correspond to backend entities, and user may want to manipulate them
+  and see results immediately, without reloading the page.
+- Some parts of the websites may need to get periodically updated.
+
+## Solution
+
+`wraplet` provides you with the `DNTM` class implementing the `NodeTreeManager` interface.
+
+It makes it possible to:
+- apply the same wraplet-creating logic multiple times on different DOM trees.
+- destroy all wraplets providing behaviors for a given DOM tree.
+
+This allows for appending, removing and replacing DOM elements with creating and destroying wraplets accordingly.
+
+## Syncing dependencies to changed DOM
+
+Sometimes there might be a need to dynamically change the DOM tree structure under one of the dependent wraplets.
+As new nodes are added or old removed, the dependencies originally instantiated and initialized by the
+dependent wraplet my get out of sync with the node tree. To solve this, `DependencyManager` provides the
+experimental `syncDependencies` method that can bring the dependencies back in sync, destroying the ones that
+were removed from the underlying DOM tree and creating new ones for the ones that were added.
+
+### Example
+
+import BrowserOnly from "@docusaurus/BrowserOnly";
+
+<BrowserOnly>
+    {() => {
+        const Example = require("@site/src/components/Example").default;
+        const MonacoEditor = require("@site/src/components/MonacoEditor").default;
+
+        return (
+            <Example style="small" loadComments={false}>
+                <h4>CSS</h4>
+                <MonacoEditor contentUrl="/examples/dynamic-dom/syncing-dependencies/styles.css" language="css" height="200px" />
+                <h4>HTML</h4>
+                <MonacoEditor contentUrl="/examples/dynamic-dom/syncing-dependencies/html.htm" language="html" height="170px" />
+                <h4>TypeScript</h4>
+                <MonacoEditor contentUrl="/examples/dynamic-dom/syncing-dependencies/typescript.txt" language="typescript" height="480px" />
+            </Example>
+        );
+    }}
+</BrowserOnly>
+
+## References
+
+- [NodeTreeManager](/docs/reference/node-tree-manager)
+- [syncDependencies](/docs/reference/dependency-manager#syncdependencies)

@@ -1,0 +1,104 @@
+import {
+    AbstractWraplet,
+    AbstractDependentWraplet,
+    type WrapletDependencyMap
+} from "wraplet";
+
+/*
+ * Dependencies.
+ */
+
+class TabButton extends AbstractWraplet<HTMLElement> {
+
+    // Our button also listens for click events.
+    public addClickListener(callback: (button: TabButton) => void) {
+        this.nodeManager.addListener("click", () => callback(this));
+    }
+
+    public getTargetId(): string {
+        const href = this.node.getAttribute("href");
+
+        // Modify the selector to get the panel's id only.
+        // We take advantage from the fact that in practice href only
+        // selects by ID.
+        return href.replace(/^#/g, '');
+    }
+
+}
+
+/*
+ * Our panel is only able to show and hide.
+ */
+class TabPanel extends AbstractWraplet<HTMLElement> {
+
+    public getId(): string {
+        return this.node.id;
+    }
+
+    public show() {
+        this.node.classList.add("active");
+    }
+
+    public hide() {
+        this.node.classList.remove("active");
+    }
+
+}
+
+/*
+ * Dependency map.
+ */
+
+const map = {
+    buttons: {
+        selector: ".tabs-nav a",
+        Class: TabButton,
+        required: true,
+        multiple: true,
+    },
+    panels: {
+        selector: ".tab-panel",
+        Class: TabPanel,
+        required: true,
+        multiple: true,
+    },
+} satisfies WrapletDependencyMap;
+
+/*
+ * Main wraplet.
+ */
+
+class Tabs extends AbstractDependentWraplet<HTMLElement, typeof map> {
+
+    protected override async onInitialize() {
+        // We wire eveything up here.
+        for (const button of this.d.buttons) {
+            button.addClickListener((button) => {
+                const targetPanelId = button.getTargetId();
+                for (const panel of this.d.panels) {
+                    if (panel.getId() === targetPanelId) {
+                        panel.show();
+                    } else {
+                        panel.hide();
+                    }
+                }
+            });
+        }
+
+    }
+
+    public static async create() {
+        return this.createAndInitializeDependentWraplets(
+            document,
+            // Instead of an attribute, we can use a callback
+            // to achieve selecting by class.
+            //
+            // Possibility of using callback is available to
+            // make it easier to make wraplets for legacy HTML.
+            (node) => node.querySelectorAll(".tabs"),
+            map,
+        );
+    }
+}
+
+await Tabs.create();

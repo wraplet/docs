@@ -1,0 +1,167 @@
+import {
+    AbstractWraplet,
+    AbstractDependentWraplet,
+    type WrapletDependencyMap,
+    type Wraplet,
+    type Constructable,
+} from "wraplet";
+
+/**
+ * Dependencies.
+ */
+
+// We start with defining interfaces describing our dependencies.
+// This will allow the end-user to use custom implementations
+// of these dependencies.
+
+interface Input extends Wraplet {
+    addOnUpdateListener(callback: () => void): void;
+    getValue(): string;
+}
+
+interface Output extends Wraplet {
+    setValue(value: string): void;
+}
+
+// Now we'll provide default implementations of these interfaces.
+
+class InputImpl extends AbstractWraplet<
+    HTMLInputElement
+> implements Input {
+    public addOnUpdateListener(callback: () => void) {
+        // We use "keyup" event for the immediate feedback when
+        // modifying the value.
+        this.nodeManager.addListener("keyup", callback);
+    }
+
+    public getValue(): string {
+        // Note that the default implementation just returns
+        // the value as is.
+        return this.node.value;
+    }
+}
+
+// Output is very simple. It will display whatever we will set on it.
+class OutputImpl extends AbstractWraplet<
+    HTMLElement
+> implements Output {
+    public setValue(value: string): void {
+        this.node.innerHTML = value;
+    }
+}
+
+/**
+ * Dependency map.
+ */
+
+// Note that we are using a factory function here. This is
+// to avoid the dangerous pitfall: a map is an object,
+// and a JS object is mutable!
+//
+// It means that if library's wraplet was instantiated twice
+// in different places, the map change for the first instance
+// would affect the second one.
+// But because we'll provide a new instance of the map each time,
+// by making only a factory function available, the end user will
+// be protected from this.
+function createMap() {
+  return {
+      input: {
+        selector: "[data-js-input]",
+        // Note that we are asserting a constructable interface
+        // here. It means that the "Class" property can have
+        // as a value any class that implements this interface,
+        // not only the default implementation provided by the
+        // library. This allows the end-user to alter an
+        // implementation without upsetting the TypeScript
+        // compiler.
+        Class: InputImpl as Constructable<Input>,
+        multiple: false,
+        required: true,
+      },
+      output: {
+        selector: "[data-js-output]",
+        Class: OutputImpl as Constructable<Output>,
+        multiple: false,
+        required: false,
+      },
+    } satisfies WrapletDependencyMap;
+}
+
+/**
+ * Main wraplet.
+ */
+
+class MyLibraryWraplet extends AbstractDependentWraplet<
+    HTMLElement,
+    // Map's type is available indirectly because we
+    // use a factory function.
+    // That's fine!
+    ReturnType<typeof createMap>
+> {
+
+    protected override async onInitialize() {
+        // We want the output to get updated immediately with the
+        // input's default value.
+        this.updateOutput();
+        // And then we want it to be updated when the input is
+        // modified.
+        this.d.input.addOnUpdateListener(() => {
+            this.updateOutput();
+        });
+    }
+
+    protected updateOutput() {
+        // Note the typehints - they are interfaces!
+        // This is because our wraplet takes types from the map
+        // and map asserts interfaces for our dependencies.
+        // Now we truly don't care about the implementations.
+        const value = this.d.input.getValue();
+        this.d.output.setValue(value);
+    }
+
+    // This is a helper method instantiating and initializing our
+    // library as many times as there are proper elements found.
+    //
+    // It also allows end user to optionally provide a customized map.
+    public static async create(
+        parentNode: ParentNode,
+        // If the main wraplet is created without providing a
+        // custom map, the default one will be used.
+        map: ReturnType<typeof createMap> = createMap(),
+    ) {
+        return await this.createAndInitializeDependentWraplets(
+            parentNode,
+            "data-js-mylibrary",
+            map,
+        );
+    }
+
+}
+
+// Now we'll see how it became possible to customize the
+// library's behavior.
+
+// Let's start with writing a custom implementation of the
+// "input" dependency.
+class InputCustomImpl extends InputImpl {
+    public getValue(): string {
+        return `${super.getValue().split("").join(".")}`;
+    }
+}
+
+// Now we'll create a customized map.
+const customizedMap = createMap();
+// Note that TypeScript doesn't complain because the assertion
+// requires only the interface to be implemented!
+//
+// To undo this override just comment out the below line.
+customizedMap.input.Class = InputCustomImpl;
+
+// We make the library use the customized map.
+const wraplets = await MyLibraryWraplet.create(
+    document,
+    customizedMap,
+);
+
+// The characters are separated by dots!

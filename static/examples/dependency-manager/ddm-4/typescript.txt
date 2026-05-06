@@ -1,0 +1,98 @@
+import {
+    AbstractDependentWraplet,
+    DDM,
+    type WrapletDependencyMap,
+} from "wraplet";
+
+
+class MyWraplet extends AbstractDependentWraplet<
+    HTMLElement,
+    typeof map
+> {
+    public setValue(value: string) {
+        this.d.container?.setValue(value);
+    }
+
+    public static async create(
+        node: ParentNode = document
+    ): Promise<MyWraplet[]> {
+        return await this.createAndInitializeDependentWraplets(
+            node,
+            "data-js-mywraplet-top",
+            map,
+        );
+    }
+}
+
+class Container extends AbstractDependentWraplet<
+    HTMLElement,
+    typeof containerMap
+> {
+    public setValue(value: string) {
+        // As long as `mywraplet` is available down the dependency
+        // tree delegate setting the value to it.
+        if (this.d.mywraplet) {
+            this.d.mywraplet.setValue(value);
+        } else {
+            // If there is no `mywraplet` available, it means we are
+            // at the leaf, so we can set the value on the current
+            // node.
+            this.node.innerHTML = value;
+        }
+    }
+}
+
+const containerMap = {
+    mywraplet: {
+        // When selector is a string, it searches in the whole
+        // ParentNode provided to the DependencyManager.
+        // But here we want to search only among the direct children
+        // of the current ParentNode. This is because we don't want
+        // Container to be instantiated independently on each node,
+        // we want dependencies to gradually propagate down the tree.
+        selector: (node) => {
+            return Array.from(node.children).filter((dependency) =>
+                dependency.hasAttribute("data-js-mywraplet"),
+            );
+        },
+        Class: MyWraplet,
+        multiple: false,
+        required: false,
+        // This allows us to wrap found node in DependencyManager
+        // with reused map. `2` means we repeat the two last map
+        // segments making this map recursive.
+        injector: DDM.createInjector(2),
+    },
+} satisfies WrapletDependencyMap;
+
+const map: {
+    // First wraplet depends on the map referencing the second wraplet,
+    // and the second wraplet depends on the map referencing the first
+    // one. This circular dependency makes TypeScript confused.
+    //
+    // Fortunately, this type clarification breaks the confusion.
+    // We only care about the "Class", "required" and "multiple"
+    // properties' types, as they are used to define dependency.
+    container: {
+        selector: any,
+        injector: any,
+        Class: typeof Container,
+        required: false,
+        multiple: false,
+    },
+} = {
+    container: {
+        selector: (node) => {
+            return Array.from(node.children).filter((dependency) =>
+                dependency.hasAttribute("data-js-mywraplet__container"),
+            );
+        },
+        Class: Container,
+        required: false,
+        multiple: false,
+        injector: DDM.createInjector(containerMap),
+    },
+} satisfies WrapletDependencyMap;
+
+const mywraplet = await MyWraplet.create();
+mywraplet[0].setValue("This is set on the deepest container, regardless of the depth!");

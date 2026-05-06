@@ -1,0 +1,122 @@
+---
+id: tutorial-calculator
+title: Calculator
+slug: /getting-started/tutorials/calculator
+sidebar_position: 2
+---
+
+import BrowserOnly from "@docusaurus/BrowserOnly";
+
+
+In this tutorial, we will create a calculator app step by step, explaining
+the reasoning behind each step.
+
+## Step 1
+
+When creating our component, we need to define what we will need first.
+
+We want to implement a calculator that adds up values from two numeral fields and displays the result
+in a third field. So we will need:
+- numeric field #1
+- numeric field #2
+- result field
+- button that will start the calculation
+
+
+<BrowserOnly>
+    {() => {
+        const Example = require("@site/src/components/Example").default;
+        const MonacoEditor = require("@site/src/components/MonacoEditor").default;
+
+        return (
+            <Example style="small" loadComments={false}>
+                <h4>HTML</h4>
+                <p>We will start with creating an HTML structure with all the elements we need.</p>
+                <MonacoEditor contentUrl="/examples/tutorials/calculator/calculator-1/html.htm" language="html" height="330px"/>
+                <h4>TypeScript</h4>
+                <p>Then we'll create wraplet classes for them.</p>
+                <MonacoEditor contentUrl="/examples/tutorials/calculator/calculator-1/typescript.txt" language="typescript" height="540px" />
+            </Example>
+        );
+    }}
+</BrowserOnly>
+
+## Step 2
+
+Now that we have our basic dependencies defined, let's go further and define a dependency map.
+
+The dependency map ties our classes to the DOM nodes. Based on it, our final class
+will be able to instantiate all its dependencies, inject proper nodes into them
+and then wire everything up.
+
+<BrowserOnly>
+    {() => {
+        const Example = require("@site/src/components/Example").default;
+        const MonacoEditor = require("@site/src/components/MonacoEditor").default;
+
+        return (
+            <Example style="small" loadComments={false}>
+                <h4>HTML</h4>
+                <p>
+                    To be able to easily identify our elements, we use HTML attributes.
+                    They are more readable than CSS classes, that can get mixed up with
+                    the ones responsible for styling.
+                </p>
+                <MonacoEditor contentUrl="/examples/tutorials/calculator/calculator-2/html.htm" language="html" height="330px"/>
+                <h4>TypeScript</h4>
+                <p>
+                    We will append dependency map to the code we already have.
+                </p>
+                <MonacoEditor contentUrl="/examples/tutorials/calculator/calculator-2/typescript.txt" language="typescript" height="540px" />
+            </Example>
+        );
+    }}
+</BrowserOnly>
+
+## Step 3
+
+Now that we have a dependency map, we can define our main class that wires everything up and instantiate it.
+
+<BrowserOnly>
+    {() => {
+        const Example = require("@site/src/components/Example").default;
+        const MonacoEditor = require("@site/src/components/MonacoEditor").default;
+
+        return (
+            <Example style="small" loadComments={false}>
+                <h4>HTML</h4>
+                <p>
+                    Nothing changes here.
+                </p>
+                <MonacoEditor contentUrl="/examples/tutorials/calculator/calculator-3/html.htm" language="html" height="330px"/>
+                <h4>TypeScript</h4>
+                <MonacoEditor contentUrl="/examples/tutorials/calculator/calculator-3/typescript.txt" language="typescript" height="540px" />
+            </Example>
+        );
+    }}
+</BrowserOnly>
+
+## Final result
+
+Now the calculator works.
+
+The only thing we added here is the instantiation of our `Calculator` through the `create` method.
+
+As you can see, the final result is that all subcomponents are properly encapsulated,
+cleanly organized, and easily testable.
+
+<BrowserOnly>
+    {() => {
+        const Example = require("@site/src/components/Example").default;
+        const MonacoEditor = require("@site/src/components/MonacoEditor").default;
+
+        return (
+            <Example style="small" loadComments={false}>
+                <h4>HTML</h4>
+                <MonacoEditor contentUrl="/examples/tutorials/calculator/calculator-final/html.htm" language="html" height="330px"/>
+                <h4>TypeScript</h4>
+                <MonacoEditor contentUrl="/examples/tutorials/calculator/calculator-final/typescript.txt" language="typescript" height="540px" />
+            </Example>
+        );
+    }}
+</BrowserOnly>

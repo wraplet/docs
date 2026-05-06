@@ -1,0 +1,85 @@
+import {
+    AbstractWraplet,
+    type WrapletDependencyMap,
+} from "wraplet";
+
+/*
+ * Step 1
+ */
+
+class Number extends AbstractWraplet<HTMLInputElement> {
+
+    public getValue(): number {
+        return parseInt(this.node.value);
+    }
+
+    protected override supportedNodeTypes() {
+        return this.supportedNodeTypesGuard([HTMLInputElement]);
+    }
+}
+
+class Result extends AbstractWraplet<HTMLInputElement> {
+
+    public setValue(value: number): void {
+        this.node.value = value.toString();
+    }
+
+    protected override supportedNodeTypes() {
+        return this.supportedNodeTypesGuard([HTMLInputElement]);
+    }
+}
+
+class Calculate extends AbstractWraplet {
+    public addClickListener(listener: () => void) {
+        this.nodeManager.addListener("click", (e: Event) => {
+            listener();
+        });
+    }
+}
+
+/*
+ * END Step 1
+ */
+
+/*
+ * Step 2
+ */
+
+const map = {
+    numbers: {
+        // `selector` tells our main wraplet what element to find.
+        selector: "[data-js-calculator-number]",
+        // `Class` tells our main wraplet instance of what class
+        // to use as a wrapper.
+        Class: Number,
+        // `required` tells our main wraplet that this dependency is
+        // required. It means that if selector will not find anything,
+        // an exception will be thrown.
+        required: true,
+        // `multiple` tells our main wraplet that this dependency can
+        // be instantiated as many times, as there are elements that match
+        // the selector. It will be available in our main wraplet as a
+        // WrapletSet.
+        //
+        // In this case, by allowing multiple "number" dependencies
+        // we will be able to add as many number elements to the calculator
+        // as we want, just by manipulating the HTML.
+        multiple: true,
+    },
+    result: {
+        selector: "[data-js-calculator-result]",
+        Class: Result,
+        required: true,
+        multiple: false,
+    },
+    calculate: {
+        selector: "[data-js-calculator-calculate]",
+        Class: Calculate,
+        required: true,
+        multiple: false,
+    },
+} satisfies WrapletDependencyMap;
+
+/*
+ * END Step 2
+ */

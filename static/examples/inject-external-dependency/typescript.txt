@@ -1,0 +1,77 @@
+import {
+    AbstractWraplet,
+    AbstractDependentWraplet,
+    type WrapletDependencyMap,
+    type DependencyManager,
+} from "wraplet";
+
+/**
+ * Dependencies
+ */
+
+class ExternalDependency extends AbstractWraplet<HTMLElement> {
+    public getValue(): string {
+        return this.node.innerHTML;
+    }
+
+    public static async createSingle(
+        node: ParentNode
+    ): Promise<ExternalDependency> {
+        return (await this.createAndInitializeWraplets(
+            node,
+            "data-js-externaldependency",
+        ))[0];
+    }
+}
+
+const map = {
+    externalDependency: {
+        Class: ExternalDependency,
+        // Don't worry that the "required" is false.
+        // We tell Dependency Manager that it's optional so it
+        // won't care about it. We will enforce it manually.
+        required: false,
+        multiple: false,
+        // We assume that this dependency is allowed to live independently
+        // from our wraplet, and should not be destroyed when our wraplet
+        // is destroyed.
+        destructible: false,
+    },
+} satisfies WrapletDependencyMap;
+
+/**
+ * Main wraplet
+ */
+
+class MyWraplet extends AbstractDependentWraplet<HTMLElement, typeof map> {
+
+    constructor(dm: DependencyManager<HTMLElement, typeof map>, dep: ExternalDependency) {
+        dm.setExistingInstance("externalDependency", dep);
+        super(dm);
+    }
+
+    public static async create(
+        node: ParentNode,
+        dep: ExternalDependency,
+    ): Promise<MyWraplet[]> {
+        return (await this.createAndInitializeDependentWraplets(
+            node,
+            "data-js-mywraplet",
+            map,
+            [dep],
+        ));
+    }
+
+    protected async onInitialize() {
+        // Dependency is normally available.
+        this.node.innerHTML = `Copied value: ${this.d.externalDependency.getValue()}`;
+    }
+
+}
+
+/**
+ * Execution
+ */
+
+const externalDep = await ExternalDependency.createSingle(document);
+const mywraplet = await MyWraplet.create(document, externalDep);

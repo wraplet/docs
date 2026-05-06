@@ -1,0 +1,260 @@
+---
+id: testing
+title: Testing
+slug: /testing
+sidebar_position: 5
+---
+
+Writing tests for wraplets is pretty easy. Each wraplet, regardless if it's a dependency of other wraplet or not,
+is a unit that can be tested individually.
+
+## Examples
+
+### Simple wraplet
+
+This wraplet:
+- Allows for setting a value on the element's `innerHTML` property.
+- Adds a click listener that changes the text color on the element it's attached to.
+
+import BrowserOnly from "@docusaurus/BrowserOnly";
+
+<BrowserOnly>
+    {() => {
+        const Example = require("@site/src/components/Example").default;
+        const MonacoEditor = require("@site/src/components/MonacoEditor").default;
+
+        return (
+            <Example style="small" loadComments={false}>
+                <h4>HTML</h4>
+                <MonacoEditor contentUrl="/examples/testing/testing-1/html.htm" language="html" height="40px" />
+                <h4>TypeScript</h4>
+                <MonacoEditor contentUrl="/examples/testing/testing-1/typescript.txt" language="typescript" height="480px" />
+            </Example>
+        );
+    }}
+</BrowserOnly>
+
+The working `jest` test for this wraplet looks like this:
+
+```typescript
+import { AbstractWraplet } from "wraplet";
+
+// Tested classes are included, so you can easily copy-paste and run this example.
+class ExampleWraplet extends AbstractWraplet<HTMLElement> {
+    public setValue(value: string): void {
+        this.node.innerHTML = value;
+    }
+
+    public async onInitialize() {
+        this.nodeManager.addListener("click", () => {
+            this.node.style.color = "red";
+        });
+    }
+
+    public static async create(node: ParentNode, selector: string) {
+        return this.createAndInitializeWraplets(node, selector);
+    }
+}
+
+describe("ExampleWraplet", () => {
+  it("should change the text color on click", async () => {
+    const element = document.createElement("div");
+    const example = new ExampleWraplet(element);
+    await example.wraplet.initialize();
+    const testValue = "Test value";
+    example.setValue(testValue);
+
+    // Test that the element's innerHTML is set to the chosen value.
+    expect(element.innerHTML).toBe(testValue);
+
+    // Test that the element's text color is changed on click.
+    element.click();
+    expect(element.style.color).toBe("red");
+  });
+});
+```
+
+### Dependent wraplet
+
+This is a complex example of dependent wraplet. It uses an arbitrary number of checkboxes
+to display their values.
+
+<BrowserOnly>
+    {() => {
+        const Example = require("@site/src/components/Example").default;
+        const MonacoEditor = require("@site/src/components/MonacoEditor").default;
+
+        return (
+            <Example style="small" loadComments={false}>
+                <h4>HTML</h4>
+                <MonacoEditor contentUrl="/examples/testing/testing-2/html.htm" language="html" height="160px" />
+                <h4>TypeScript</h4>
+                <MonacoEditor contentUrl="/examples/testing/testing-2/typescript.txt" language="typescript" height="680px" />
+            </Example>
+        );
+    }}
+</BrowserOnly>
+
+We can test it as a whole, and also all wraplets individually. Working test code looks like this:
+
+```typescript
+import {
+  AbstractDependentWraplet,
+  AbstractWraplet,
+  WrapletDependencyMap,
+} from "wraplet";
+
+// Tested classes are included, so you can easily copy-paste and run this example.
+class Input extends AbstractWraplet<HTMLInputElement> {
+  public addChangeListener(callback: (input: Input) => void) {
+    this.nodeManager.addListener("change", () => {
+      callback(this);
+    });
+  }
+
+  public getValue(): boolean {
+    return this.node.checked;
+  }
+
+  protected supportedNodeTypes() {
+    return super.supportedNodeTypesGuard([HTMLInputElement]);
+  }
+}
+
+class Output extends AbstractWraplet<HTMLElement> {
+  public setValue(value: string): void {
+    this.node.innerHTML = value;
+  }
+}
+
+const map = {
+  inputs: {
+    selector: "[data-js-example__input]",
+    Class: Input,
+    required: true,
+    multiple: true,
+  },
+  output: {
+    selector: "[data-js-example__output]",
+    Class: Output,
+    required: true,
+    multiple: false,
+  },
+} satisfies WrapletDependencyMap;
+
+class ExampleDependentWraplet extends AbstractDependentWraplet<
+  HTMLElement,
+  typeof map
+> {
+  protected async onInitialize() {
+    this.updateOutput();
+    for (const input of this.d.inputs) {
+      input.addChangeListener(this.updateOutput.bind(this));
+    }
+  }
+
+  private updateOutput() {
+    let counter = 1;
+    let output = "";
+    for (const input of this.d.inputs) {
+      output += `${counter}: ${input.getValue()}<br/>`;
+      counter++;
+    }
+    this.d.output.setValue(output);
+  }
+
+  public static async create(node: ParentNode, selector: string) {
+    return this.createAndInitializeDependentWraplets(node, selector, map);
+  }
+}
+
+describe("ExampleDependentWraplet", () => {
+  // First we may decide to test all dependencies of our wraplet
+  describe("Input", () => {
+    it("supports only a HTMLInputElement", async () => {
+      const func = (element: Node) => {
+        return () => {
+          // @ts-expect-error We expect TS to complain about the wrong element type.
+          // We want to test the runtime behavior regardless.
+          new Input(element);
+        };
+      };
+      expect(func(document.createElement("div"))).toThrow();
+      expect(func(document.createElement("input"))).not.toThrow();
+    });
+
+    it("allows for registering a change listener", async () => {
+      const func = jest.fn();
+      const element = document.createElement("input");
+      const inputWraplet = new Input(element);
+      await inputWraplet.wraplet.initialize();
+
+      inputWraplet.addChangeListener(func);
+      const event = new Event("change");
+      element.dispatchEvent(event);
+
+      expect(func).toHaveBeenCalledTimes(1);
+      expect(func).toHaveBeenLastCalledWith(inputWraplet);
+    });
+  });
+
+  describe("Output", () => {
+    it("sets value", async () => {
+      const element = document.createElement("div");
+      const outputWraplet = new Output(element);
+      await outputWraplet.wraplet.initialize();
+
+      outputWraplet.setValue("test");
+      expect(element.innerHTML).toBe("test");
+    });
+  });
+  describe("ExampleDependentWraplet", () => {
+    const attribute = "data-js-example";
+    // Now we can test everything working together.
+    const exampleElementTree = document.createElement("div");
+    exampleElementTree.setAttribute(attribute, "");
+    exampleElementTree.innerHTML = `
+            <input data-js-example__input type="checkbox"/>
+            <div data-js-example__output></div>
+          `;
+
+    it("gets created", async () => {
+      const wraplets = await ExampleDependentWraplet.create(
+        exampleElementTree,
+        attribute,
+      );
+      expect(wraplets).toHaveLength(1);
+    });
+
+    it("works", async () => {
+      const wraplets = await ExampleDependentWraplet.create(
+        exampleElementTree,
+        attribute,
+      );
+      const wraplet = wraplets[0];
+
+      await wraplet.wraplet.initialize();
+
+      const inputElement = exampleElementTree.querySelector<HTMLInputElement>(
+        "input[data-js-example__input]",
+      );
+
+      if (!inputElement) {
+        throw new Error();
+      }
+
+      inputElement.checked = true;
+      const event = new Event("change");
+      inputElement.dispatchEvent(event);
+
+      const outputElement = exampleElementTree.querySelector(
+        "[data-js-example__output]",
+      );
+      if (!outputElement) {
+        throw new Error();
+      }
+      expect(outputElement.innerHTML).toContain("1: true");
+    });
+  });
+});
+```

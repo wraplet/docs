@@ -1,0 +1,221 @@
+---
+id: migration-examples-tabbed-content
+title: Tabbed content
+slug: /migration/examples/tabbed-content
+sidebar_position: 0
+---
+
+import BrowserOnly from "@docusaurus/BrowserOnly";
+
+## Legacy code
+
+This is an example jQuery code. It's compact, but it's also difficult to test and maintain.
+Let's do something about it!
+
+**Fun fact**: This is what ChatGPT generated when I asked it for a jQuery example of a tabbed content,
+so I trust it's an average quality jQuery code.
+
+<BrowserOnly>
+    {() => {
+        const Example = require("@site/src/components/Example").default;
+        const MonacoEditor = require("@site/src/components/MonacoEditor").default;
+
+        return (
+            <Example style="small" loadComments={false}>
+                <h4>CSS</h4>
+                <p>
+                    We won't be touching CSS at all, but it's here.
+                </p>
+                <MonacoEditor contentUrl="/examples/migration/jquery-tabs/legacy/styles.css" language="css" height="300px" />
+                <h4>HTML</h4>
+                <MonacoEditor contentUrl="/examples/migration/jquery-tabs/legacy/html.htm" language="html" height="330px" />
+                <h4>JavaScript</h4>
+                <MonacoEditor contentUrl="/examples/migration/jquery-tabs/legacy/javascript.txt" language="javascript" height="580px" />
+            </Example>
+        );
+    }}
+</BrowserOnly>
+
+## Wraplet top-down rewrite
+
+Let's start with a simple **impure** wraplet.
+
+### Step 1
+
+<BrowserOnly>
+    {() => {
+        const Example = require("@site/src/components/Example").default;
+        const MonacoEditor = require("@site/src/components/MonacoEditor").default;
+
+        return (
+            <Example style="small" loadComments={false}>
+                <h4>CSS</h4>
+                <MonacoEditor contentUrl="/examples/migration/jquery-tabs/top-down/step-1/styles.css" language="css" height="300px" />
+                <h4>HTML</h4>
+                <p>
+                    Note that the HTML didn't change at all.
+                </p>
+                <MonacoEditor contentUrl="/examples/migration/jquery-tabs/top-down/step-1/html.htm" language="html" height="330px" />
+                <h4>TypeScript</h4>
+                <MonacoEditor contentUrl="/examples/migration/jquery-tabs/top-down/step-1/typescript.txt" language="typescript" height="580px" />
+            </Example>
+        );
+    }}
+</BrowserOnly>
+
+It's already more readable and maintainable + we don't need to test it on a document:
+
+```typescript
+it("tabs", async () => {
+  const element = document.createElement("div");
+  element.innerHTML = `
+      <ul class="tabs-nav">
+        <li><a href="#tab1" class="active">Tab 1</a></li>
+        <li><a href="#tab2">Tab 2</a></li>
+        <li><a href="#tab3">Tab 3</a></li>
+      </ul>
+
+      <div class="tabs-content">
+        <div id="tab1" class="tab-panel active">Zawartość 1</div>
+        <div id="tab2" class="tab-panel">Zawartość 2</div>
+        <div id="tab3" class="tab-panel">Zawartość 3</div>
+      </div>
+    `;
+
+  const tabs = new Tabs(element);
+  await tabs.wraplet.initialize();
+
+  const tab2 = element.querySelector<HTMLElement>("[href='#tab2']");
+
+  // Default pane is active.
+  expect(element.querySelector("#tab1")?.classList.contains("active")).toBe(true);
+  expect(element.querySelector("#tab2")?.classList.contains("active")).toBe(false);
+  tab2?.dispatchEvent(new Event("click"));
+  expect(element.querySelector("#tab1")?.classList.contains("active")).toBe(false);
+  expect(element.querySelector("#tab2")?.classList.contains("active")).toBe(true);
+});
+```
+
+All listeners will get automatically removed when the wraplet is destroyed, so you get a managed lifecycle
+for free.
+
+### Step 2
+
+Now we'll change the way we are hooking into the required elements to be more readable.
+
+<BrowserOnly>
+    {() => {
+        const Example = require("@site/src/components/Example").default;
+        const MonacoEditor = require("@site/src/components/MonacoEditor").default;
+
+        return (
+            <Example style="small" loadComments={false}>
+                <h4>CSS</h4>
+                <MonacoEditor contentUrl="/examples/migration/jquery-tabs/top-down/step-2/styles.css" language="css" height="300px" />
+                <h4>HTML</h4>
+                <MonacoEditor contentUrl="/examples/migration/jquery-tabs/top-down/step-2/html.htm" language="html" height="330px" />
+                <h4>TypeScript</h4>
+                <p>
+                    We changed selectors to match the new HTML markup.
+                </p>
+                <MonacoEditor contentUrl="/examples/migration/jquery-tabs/top-down/step-2/typescript.txt" language="typescript" height="580px" />
+            </Example>
+        );
+    }}
+</BrowserOnly>
+
+### Final step
+
+In simple cases it could be enough. But we'll get really pedantic for the sake of the example.
+
+Now we'll break down this already simple logic into even smaller pieces.
+
+- `data-js-tabs__tab`
+- `data-js-tabs__pane`
+
+Do you see these attributes?
+
+They could be their own wraplets. We could hide away elements and make our `Tabs` wraplet interact only with
+explicitly coded methods of other wraplets. This would bring even more granular encapsulation.
+
+<BrowserOnly>
+    {() => {
+        const Example = require("@site/src/components/Example").default;
+        const MonacoEditor = require("@site/src/components/MonacoEditor").default;
+
+        return (
+            <Example style="small" loadComments={false}>
+                <h4>CSS</h4>
+                <MonacoEditor contentUrl="/examples/migration/jquery-tabs/top-down/step-final/styles.css" language="css" height="300px" />
+                <h4>HTML</h4>
+                <MonacoEditor contentUrl="/examples/migration/jquery-tabs/top-down/step-final/html.htm" language="html" height="330px" />
+                <h4>TypeScript</h4>
+                <MonacoEditor contentUrl="/examples/migration/jquery-tabs/top-down/step-final/typescript.txt" language="typescript" height="580px" />
+            </Example>
+        );
+    }}
+</BrowserOnly>
+
+## Wraplet bottom-up rewrite
+
+First, we need to identify all elements this code hooks into. It's easy because mostly we have to look at the selectors.
+
+We have the following selectors:
+
+- `.tabs-nav a` - this one represents buttons.
+- `.tabs` - this one represents all tabs.
+- `.tab-panel` - and this one represents panels.
+
+It means we'll need three wraplets. ".tabs" is our main wraplet representing
+all tabs, and the other ones are its dependencies.
+
+Note also that the information about the relationship between buttons and panels is on the button elements (href).
+
+### Step 1
+
+First, we'll recreate dependencies as wraplets and try to migrate the functionality into them.
+
+<BrowserOnly>
+    {() => {
+        const Example = require("@site/src/components/Example").default;
+        const MonacoEditor = require("@site/src/components/MonacoEditor").default;
+
+        return (
+            <Example style="small" loadComments={false}>
+                <h4>CSS</h4>
+                <MonacoEditor contentUrl="/examples/migration/jquery-tabs/bottom-up/step-1/styles.css" language="css" height="300px" />
+                <h4>HTML</h4>
+                <p>
+                    Note that the HTML didn't change at all.
+                </p>
+                <MonacoEditor contentUrl="/examples/migration/jquery-tabs/bottom-up/step-1/html.htm" language="html" height="330px" />
+                <h4>TypeScript</h4>
+                <MonacoEditor contentUrl="/examples/migration/jquery-tabs/bottom-up/step-1/typescript.txt" language="typescript" height="580px" />
+            </Example>
+        );
+    }}
+</BrowserOnly>
+
+### Final step
+
+In the second step, we'll make it all more "wraplety" by changing a few things in the HTML.
+
+<BrowserOnly>
+    {() => {
+        const Example = require("@site/src/components/Example").default;
+        const MonacoEditor = require("@site/src/components/MonacoEditor").default;
+
+        return (
+            <Example style="small" loadComments={false}>
+                <h4>CSS</h4>
+                <MonacoEditor contentUrl="/examples/migration/jquery-tabs/bottom-up/step-final/styles.css" language="css" height="300px" />
+                <h4>HTML</h4>
+                <MonacoEditor contentUrl="/examples/migration/jquery-tabs/bottom-up/step-final/html.htm" language="html" height="330px" />
+                <h4>TypeScript</h4>
+                <MonacoEditor contentUrl="/examples/migration/jquery-tabs/bottom-up/step-final/typescript.txt" language="typescript" height="580px" />
+            </Example>
+        );
+    }}
+</BrowserOnly>
+
+The final result is more verbose but also more declarative, much easier to understand, maintain, and test.

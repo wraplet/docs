@@ -1,0 +1,31 @@
+import { AbstractWraplet } from "wraplet";
+
+// `AbstractWraplet` is an abstract class that provides
+// a common interface for all wraplets called "Wraplet API".
+//
+// "Wraplet API" provides a class with a lifecycle and state.
+// In this example we don't really make use if it, but bear with us.
+class ExampleWraplet extends AbstractWraplet<HTMLElement> {
+    public setValue(value: string): void {
+        this.node.innerHTML = value;
+    }
+}
+
+const element: HTMLElement = document.querySelector("[data-js-example]");
+
+const example = new ExampleWraplet(element);
+
+// It's important to always initialize a wraplet before using it.
+// Even if we don't hook into initialization in any way yet.
+//
+// This is for ensuring that the state of our wraplet is consistent.
+//
+// Note that it's an asynchronous operation.
+await example.wraplet.initialize();
+
+example.setValue("Value has been set!");
+
+// If wraplet is no longer needed, we can destroy it.
+//
+// Note that destruction is also asynchronous.
+await example.wraplet.destroy();

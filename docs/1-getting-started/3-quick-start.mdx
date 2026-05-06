@@ -1,0 +1,125 @@
+---
+id: quick-start
+title: Quick start
+slug: /getting-started/quick-start
+sidebar_position: 3
+---
+
+import BrowserOnly from "@docusaurus/BrowserOnly";
+
+## Installation
+
+### NPM
+
+#### bash
+
+```bash
+npm install wraplet
+```
+
+#### javascript
+
+```typescript
+import { AbstractWraplet } from 'wraplet';
+```
+
+### CDN
+
+```javascript
+import { AbstractWraplet } from 'https://cdn.jsdelivr.net/npm/wraplet@latest/dist/index.js';
+```
+
+## Quick examples
+
+The value of wraplets increases with their number and interconnections.
+
+The simplest example doesn't provide much more value over a simple class wrapper,
+but we will be steadily increasing the complexity with each next example.
+
+Note that you can load comments for each example.
+
+### Minimal wraplet A
+
+A minimal wraplet is just a wrapper around a DOM node.
+
+It has a lifecycle but doesn't really make use of it.
+
+Still, it abstracts away the DOM node and provides a simple API for interacting with it,
+which makes for a cleaner code than using the DOM directly.
+
+<BrowserOnly>
+    {() => {
+        const Example = require("@site/src/components/Example").default;
+        const MonacoEditor = require("@site/src/components/MonacoEditor").default;
+
+        return (
+            <Example style="small" loadComments={true}>
+                <h4>HTML</h4>
+                <MonacoEditor contentUrl="/examples/quick-start/minimal-a/html.htm" language="html" height="30px"/>
+                <h4>TypeScript</h4>
+                <MonacoEditor contentUrl="/examples/quick-start/minimal-a/typescript.txt" language="typescript" height="340px" stripComments={true} />
+            </Example>
+        );
+    }}
+</BrowserOnly>
+
+### Minimal wraplet B
+
+In this version we'll show a bit more declarative way of instantiating a wraplet.
+
+<BrowserOnly>
+    {() => {
+        const Example = require("@site/src/components/Example").default;
+        const MonacoEditor = require("@site/src/components/MonacoEditor").default;
+
+        return (
+            <Example style="small" loadComments={true}>
+                <h4>HTML</h4>
+                <MonacoEditor contentUrl="/examples/quick-start/minimal-b/html.htm" language="html" height="30px"/>
+                <h4>TypeScript</h4>
+                <MonacoEditor contentUrl="/examples/quick-start/minimal-b/typescript.txt" language="typescript" height="340px" stripComments={true} />
+            </Example>
+        );
+    }}
+</BrowserOnly>
+
+
+### Wraplet making use of the lifecycle
+
+<BrowserOnly>
+    {() => {
+        const Example = require("@site/src/components/Example").default;
+        const MonacoEditor = require("@site/src/components/MonacoEditor").default;
+
+        return (
+            <Example style="small" loadComments={true}>
+                <h4>HTML</h4>
+                <MonacoEditor contentUrl="/examples/quick-start/lifecycle/html.htm" language="html" height="30px"/>
+                <h4>TypeScript</h4>
+                <MonacoEditor contentUrl="/examples/quick-start/lifecycle/typescript.txt" language="typescript" height="340px" stripComments={true} />
+            </Example>
+        );
+    }}
+</BrowserOnly>
+
+### Wraplet with dependencies
+
+This is an advanced example of multiple wraplets tied together to provide the functionality of a simple calculator.
+
+This is the final result of the tutorial available [HERE](/docs/getting-started/tutorials/calculator).
+
+<BrowserOnly>
+    {() => {
+        const Example = require("@site/src/components/Example").default;
+        const MonacoEditor = require("@site/src/components/MonacoEditor").default;
+
+        return (
+            <Example style="small" loadComments={false}>
+                <h4>HTML</h4>
+                <MonacoEditor contentUrl="/examples/tutorials/calculator/calculator-final/html.htm" language="html" height="330px"/>
+                <h4>TypeScript</h4>
+                <MonacoEditor contentUrl="/examples/tutorials/calculator/calculator-final/typescript.txt" language="typescript" height="540px" stripComments={true} />
+            </Example>
+        );
+    }}
+</BrowserOnly>

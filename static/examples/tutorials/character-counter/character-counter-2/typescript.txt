@@ -1,0 +1,66 @@
+import {
+    AbstractWraplet,
+    AbstractDependentWraplet,
+    type WrapletDependencyMap,
+} from "wraplet";
+
+/*
+ * Step 1
+ */
+
+/*
+ * Dependencies.
+ */
+
+class Input extends AbstractWraplet<HTMLInputElement> {
+
+    public addCountChangeListener(listener: (newCount: number) => void) {
+        this.nodeManager.addListener("keyup", () => listener(this.node.value.length));
+    }
+
+    protected override supportedNodeTypes() {
+        return this.supportedNodeTypesGuard([HTMLInputElement]);
+    }
+}
+
+class Display extends AbstractWraplet<HTMLInputElement> {
+
+    public setValue(value: number): void {
+        this.node.value = value.toString();
+    }
+
+    protected override supportedNodeTypes() {
+        return this.supportedNodeTypesGuard([HTMLInputElement]);
+    }
+}
+
+/*
+ * END Step 1
+ */
+
+/*
+ * Step 2
+ */
+
+/*
+ * Dependency map.
+ */
+
+const map = {
+    input: {
+        selector: "[data-js-counter__input]",
+        Class: Input,
+        required: true,
+        multiple: false,
+    },
+    display: {
+        selector: "[data-js-counter__display]",
+        Class: Display,
+        required: true,
+        multiple: false,
+    },
+} satisfies WrapletDependencyMap;
+
+/*
+ * END Step 2
+ */

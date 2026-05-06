@@ -1,0 +1,62 @@
+import {
+    AbstractWraplet,
+    AbstractDependentWraplet,
+    DDM,
+    type WrapletDependencyMap,
+} from "wraplet";
+
+class Subcontainer extends AbstractWraplet<HTMLElement> {
+    public setValue(value: string) {
+        this.node.innerHTML = value;
+    }
+}
+
+class Container extends AbstractDependentWraplet<
+    HTMLElement,
+    typeof containerMap
+> {
+    public async onInitialize() {
+        // Note that we are setting value on our new dependency now.
+        this.d.subcontainer.setValue("Container is initialized!");
+    }
+}
+
+const containerMap = {
+    subcontainer: {
+        selector: "[data-js-mywraplet__container__sub]",
+        Class: Subcontainer,
+        multiple: false,
+        required: true,
+    },
+} satisfies WrapletDependencyMap;
+
+const map = {
+    container: {
+        selector: "[data-js-mywraplet__container]",
+        Class: Container,
+        required: true,
+        multiple: false,
+        // Custom injector wraps node in the Dependency Manager
+        // and only then injects it into the wraplet.
+        // This way we have:
+        // `main wraplet <- container <- subcontainer` dependency tree.
+        injector: DDM.createInjector(containerMap)
+    },
+} satisfies WrapletDependencyMap;
+
+class MyWraplet extends AbstractDependentWraplet<
+    HTMLElement,
+    typeof map
+> {
+    public static async create(
+        node: ParentNode = document
+    ): Promise<MyWraplet[]> {
+        return await this.createAndInitializeDependentWraplets(
+            node,
+            "data-js-mywraplet",
+            map,
+        );
+    }
+}
+
+const wraplets = await MyWraplet.create();

@@ -1,0 +1,93 @@
+import {
+    AbstractWraplet,
+} from "wraplet";
+
+/*
+ * Step 1
+ */
+
+/*
+ * Dependencies.
+ */
+
+/**
+ * Numeric field.
+ *
+ * `AbstractWraplet` is an abstract class provided by the Wraplet
+ * library that's provisioned with an implementation of the `Wraplet`
+ * interface and protected methods that allow you to hook into
+ * the wraplet's lifecycle.
+ *
+ * It's an easy way to implement a wraplet.
+ */
+class Number extends AbstractWraplet<HTMLInputElement> {
+
+    // We need the value of the field to calculate the result.
+    // So let's create a method to get it.
+    public getValue(): number {
+        return parseInt(this.node.value);
+    }
+
+    /**
+     * Note that above we reference `this.node.value`. The `value`
+     * property doesn't exist on every node. We specifically need
+     * the `HTMLInputElement` node.
+     *
+     * By passing the `HTMLInputElement` type to the `AbstractWraplet`
+     * generic, we ensured that the typehint for the `node` property
+     * is correct, that's why TypeScript doesn't complain when we use
+     * the `node.value` property. However, this is only a typehint,
+     * TypeScript doesn't enforce the type of the injected `node` on
+     * the runtime.
+     *
+     * Additionally to ensuring the proper typehints, we can also
+     * ensure that no other type of node can be injected into this
+     * wraplet on runtime. This is what the `supportedNodeTypes`
+     * method is for. It makes the `AbstractWraplet` to validate the
+     * injected node.
+     *
+     * Note that additionally we wrap our result in a guard method.
+     * The `supportedNodeTypesGuard` method ensures that the types of
+     * values entered here are the same ones as the types passed to
+     * the `AbstractWraplet` generic. If they are not, TypeScript
+     * will complain. This is just a safety measure that couples values
+     * to the types we depend on. It helps with union types like:
+     * `HTMLInputElement | HTMLTextAreaElement`.
+     */
+    protected override supportedNodeTypes() {
+        return this.supportedNodeTypesGuard([HTMLInputElement]);
+    }
+}
+
+/**
+ * Result field.
+ */
+class Result extends AbstractWraplet<HTMLInputElement> {
+
+    public setValue(value: number): void {
+        this.node.value = value.toString();
+    }
+
+    protected override supportedNodeTypes() {
+        return this.supportedNodeTypesGuard([HTMLInputElement]);
+    }
+}
+
+/**
+ * "Calculate" button.
+ *
+ * Note that we don't assume the HTMLButtonElement. We don't
+ * depend on any of its specific features. We just want something
+ * clickable, so we'll allow all nodes this time.
+ */
+class Calculate extends AbstractWraplet {
+    public addClickListener(listener: () => void) {
+        this.nodeManager.addListener("click", (e: Event) => {
+            listener();
+        });
+    }
+}
+
+/*
+ * END Step 1
+ */

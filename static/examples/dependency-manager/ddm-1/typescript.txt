@@ -1,0 +1,45 @@
+import {
+    AbstractWraplet,
+    AbstractDependentWraplet,
+    type WrapletDependencyMap,
+} from "wraplet";
+
+// Note that only the wraplet extending the `AbstractDependentWraplet`
+// class has a Dependency Manager injected. Its dependency doesn't
+// have it, and it extends `AbstractWraplet` instead.
+//
+// This is because by default all dependencies are not dependent
+// wraplets. But they can be made ones! See a later example.
+
+class Container extends AbstractWraplet<HTMLElement> {
+    // This is a handy hook executed during the wraplet initialization.
+    public async onInitialize() {
+        this.node.innerHTML = "Container is initialized!"
+    }
+}
+
+const map = {
+    container: {
+        selector: "[data-js-mywraplet__container]",
+        Class: Container,
+        required: true,
+        multiple: false,
+    },
+} satisfies WrapletDependencyMap;
+
+class MyWraplet extends AbstractDependentWraplet<
+    HTMLElement,
+    typeof map
+> {
+    public static async create(
+        node: ParentNode = document
+    ): Promise<MyWraplet[]> {
+        return await this.createAndInitializeDependentWraplets(
+            node,
+            "data-js-mywraplet",
+            map,
+        );
+    }
+}
+
+const wraplets = await MyWraplet.create();

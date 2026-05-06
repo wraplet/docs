@@ -1,0 +1,63 @@
+import {
+    AbstractWraplet,
+} from "wraplet";
+
+/*
+ * Main wraplet.
+ */
+
+class Tabs extends AbstractWraplet<HTMLElement> {
+
+    protected override async onInitialize() {
+        // Here we'll rewrite the logic.
+
+        // As we interact with other nodes than the
+        // one wrapped by this wraplet, it's now considered
+        // "impure". But it's still an improvement in code
+        // readability, compared to the previous version.
+        this.nodeManager.addListenerTo(
+            // Keeping the same selector for tabs.
+            ".tabs-nav a",
+            "click",
+            (event) => {
+                // Keeping the same logic, but now easier to read.
+                const tabElement = event.currentTarget as HTMLElement;
+
+                // Get panel's selector from the tab element.
+                const targetPanelSelector =
+                    tabElement.getAttribute("href");
+
+                // Search for the panel.
+                const targetPanelElement =
+                    this.node.querySelector(targetPanelSelector);
+
+                // Switch pane based on the clicked tab.
+                const panelElements =
+                    this.node.querySelectorAll<HTMLElement>(
+                        ".tab-panel"
+                    );
+                for (const panelElement of panelElements) {
+                    if (panelElement === targetPanelElement) {
+                        panelElement.classList.add("active");
+                    } else {
+                        panelElement.classList.remove("active");
+                    }
+                }
+            },
+        )
+    }
+
+    public static async create() {
+        return this.createAndInitializeWraplets(
+            document,
+            // Instead of an attribute, we can use a callback
+            // to achieve selecting by class.
+            //
+            // Possibility of using callback is available to
+            // make it easier to make wraplets for legacy HTML.
+            (node) => node.querySelectorAll(".tabs"),
+        );
+    }
+}
+
+await Tabs.create();

@@ -1,0 +1,102 @@
+import {
+    AbstractWraplet,
+    // We'll use `AbstractDependentWraplet` to add dependency
+    // management to our main wraplet.
+    AbstractDependentWraplet,
+    type WrapletDependencyMap
+} from "wraplet";
+
+/*
+ * Dependencies.
+ */
+
+/*
+ * This is a wraplet exposing methods for interacting with
+ * a tab button.
+ */
+class TabButton extends AbstractWraplet<HTMLElement> {
+
+    public addClickListener(callback: (button: TabButton) => void) {
+        this.nodeManager.addListener("click", () => callback(this));
+    }
+
+    public getTargetId(): string {
+        return this.node.getAttribute("data-js-tabs__tab--target");
+    }
+
+}
+
+/*
+ * This wraplet exposes methods for interacting with a tab panel.
+ *
+ * Our panel is only able to show and hide.
+ */
+class TabPanel extends AbstractWraplet<HTMLElement> {
+
+    public getId(): string {
+        // New ID source.
+        return this.node.getAttribute("data-js-tabs__panel--id");
+    }
+
+    public show() {
+        this.node.classList.add("active");
+    }
+
+    public hide() {
+        this.node.classList.remove("active");
+    }
+
+}
+
+/*
+ * Dependency map.
+ */
+
+const map = {
+    buttons: {
+        selector: "[data-js-tabs__tab]",
+        Class: TabButton,
+        required: true,
+        multiple: true,
+    },
+    panels: {
+        selector: "[data-js-tabs__panel]",
+        Class: TabPanel,
+        required: true,
+        multiple: true,
+    },
+} satisfies WrapletDependencyMap;
+
+/*
+ * Main wraplet.
+ */
+
+class Tabs extends AbstractDependentWraplet<HTMLElement, typeof map> {
+
+    protected override async onInitialize() {
+        // Now the wiring is as simple as it can get.
+        for (const button of this.d.buttons) {
+            button.addClickListener((button) => {
+                const targetPanelId = button.getTargetId();
+                for (const panel of this.d.panels) {
+                    if (panel.getId() === targetPanelId) {
+                        panel.show();
+                    } else {
+                        panel.hide();
+                    }
+                }
+            });
+        }
+
+    }
+
+    public static async create() {
+        return this.createAndInitializeDependentWraplets(
+            document,
+            "data-js-tabs",
+            map,
+        );
+    }
+}
+
+await Tabs.create();

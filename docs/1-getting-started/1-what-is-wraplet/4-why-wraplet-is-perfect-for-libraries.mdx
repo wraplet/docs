@@ -1,0 +1,55 @@
+---
+id: why-wraplet-is-perfect-for-libraries
+title: Why it's perfect for libraries
+slug: /getting-started/what-is-wraplet/why-wraplet-is-perfect-for-libraries
+sidebar_position: 4
+---
+
+## Justification
+
+Often, libraries that provide some functionality to existing server-rendered HTML are monolithic.
+You have a class instance or a function that is configurable and accepts a configuration object that
+determines its behavior. Then the library internally finds its required elements and wires them up.
+
+You have little control over what's going on under the hood. With Wraplet you can write a library
+that is highly configurable and extensible with minimal work. This is because Wraplet's dependency structure
+is declarative and can be easily altered. Classes can be replaced and interaction between them can be
+defined with interfaces.
+
+You only need to use Wraplet's dependency map and allow end users to alter it. The dependency map
+can be typed with interfaces.
+
+Let me show you an example of how to set up a library structure with Wraplet.
+
+You can load comments for a walk-through explaining everything.
+
+import BrowserOnly from "@docusaurus/BrowserOnly";
+
+## Example
+
+This example shows how to use interfaces to make wraplets
+implementation-agnostic and alter their dependencies.
+
+This pseudo-library has only two subcomponents. One storing value, and the second one displaying it.
+
+<BrowserOnly>
+    {() => {
+        const Example = require("@site/src/components/Example").default;
+        const MonacoEditor = require("@site/src/components/MonacoEditor").default;
+
+        return (
+            <Example style="small">
+                <h4>HTML</h4>
+                <MonacoEditor contentUrl="/examples/perfect-for-libraries/html.htm" language="html" height="80px" />
+                <h4>TypeScript</h4>
+                <MonacoEditor contentUrl="/examples/perfect-for-libraries/typescript.txt" language="typescript" height="620px" stripComments={true} />
+            </Example>
+        );
+    }}
+</BrowserOnly>
+
+## Pitfalls
+
+- If you provide an alterable map for end-users, remember to give them a new instance every time. This is because the dependency map
+  is a JS object, and JS objects are mutable! An end user will probably not be aware that the same map got from the library's module,
+  once modified, will remain modified for all next uses in different parts of the codebase.

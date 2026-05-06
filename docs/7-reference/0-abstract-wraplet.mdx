@@ -1,0 +1,156 @@
+---
+id: reference-abstract-wraplet
+title: AbstractWraplet
+slug: /reference/abstract-wraplet
+sidebar_position: 0
+---
+
+`AbstractWraplet` is a helper abstract class for creating custom wraplets. It's very minimal, it just implements
+the `Wraplet` interface by providing the `WrapletApi` and provides few useful `protected` methods.
+
+```typescript
+abstract class AbstractWraplet<
+  N extends Node = Node,
+> implements Wraplet {
+```
+
+## Properties and methods
+
+### constructor
+
+```typescript
+constructor(protected node: N) {
+```
+
+`AbstractWraplet` takes a node as a constructor argument.
+
+This node is validated and wired up to the helpers.
+
+### createWrapletApi
+
+```typescript
+protected createWrapletApi(): WrapletApi {
+```
+
+Creates the WrapletApi for this wraplet. Subclasses (e.g. `AbstractDependentWraplet`)
+can override this to supply their own lifecycle callbacks without causing a
+double-creation of `WrapletApi`.
+
+### buildWrapletApi
+
+```typescript
+protected buildWrapletApi(
+  initializeCallback?: WrapletApiFactoryBasicCallback,
+  destroyCallback?: WrapletApiFactoryBasicCallback,
+): WrapletApi {
+```
+
+Builds a WrapletApi with the given callbacks and ensures NodeManager cleanup
+is always wired into the destroy path.
+
+Don't override this unless you really know what you are doing.
+
+
+
+### get nodeManager
+
+```typescript
+protected get nodeManager(): NodeManager<N>
+```
+
+Getter for the NodeManager. It allows you to access the NodeManager from within
+your wraplet with `this.nodeManager`.
+
+### supportedNodeTypes
+
+```typescript
+protected supportedNodeTypes(): readonly Constructable<N>[] | null {
+```
+
+Subclasses should return an array of constructors covering all types of nodes supported by this wraplet.
+
+Wrap the result in the `supportedTypeGuard` helper to make sure that the array contains all
+and only classes that extend the given type.
+
+If in the constructor a node is injected that is not supported by this wraplet, an error will be thrown.
+
+### supportedNodeTypesGuard
+
+```typescript
+protected supportedNodeTypesGuard<T extends readonly Constructable<N>[]>(
+  types: T & (Exclude<N, InstanceType<T[number]>> extends never ? T : never),
+): T {
+```
+
+Helper for subclasses to easily satisfy the exhaustive type check of supported node types.
+
+Basically, it makes sure that values entered into it correlate to the types entered into the `AbstractWraplet`'s generic.
+So it couples together types and values to sync up the compile-time type check and runtime value check.
+
+### async onInitialize
+
+```typescript
+protected async onInitialize(): Promise<void> {
+```
+
+This method is wired up to the `WrapletApi`'s lifecycle callback.
+
+By implementing it, you can perform any initialization logic that needs to be done before the wraplet is ready to use.
+
+### async onDestroy
+
+```typescript
+protected async onDestroy(): Promise<void> {
+```
+
+This method is wired up to the `WrapletApi`'s lifecycle callback.
+
+By implementing it, you can perform any cleanup logic that needs to be done before the wraplet is destroyed.
+
+### static createWraplets
+
+```typescript
+protected static createWraplets<
+  T extends abstract new (ddm: any, ...args: any[]) => AbstractWraplet<any>,
+>(
+  this: T,
+  node: ParentNode,
+  attribute: string,
+  additional_args: unknown[] = [],
+): InstanceType<T>[] {
+```
+
+This is a helper method that can be used to create an array of wraplets from a parent node and an attribute name.
+
+Its definition looks complex, but it's actually quite simple to use.
+
+You can use it like this:
+
+```typescript
+public static create() {
+    return this.createWraplets(document, "data-js-mywraplet");
+}
+```
+
+It will instantiate and return a wraplet for each element with the "data-js-mywraplet" attribute in the document.
+
+The complexity of its definition comes from the fact that it's very clever: the above `create` method we implemented
+has an implicit return type that is an array of instances of a wraplet that implements it. So, less writing for us.
+
+### static async createAndInitializeWraplets
+
+```typescript
+protected static async createAndInitializeWraplets<
+  T extends {
+    new (ddm: any, ...args: any[]): AbstractWraplet<any>;
+  },
+>(
+  this: T,
+  node: ParentNode,
+  attribute: string,
+  additional_args: unknown[] = [],
+): Promise<InstanceType<T>[]> {
+```
+
+This one is similar to the `static createWraplets` method. The only difference is that it also initializes
+the wraplets before returning them. That's why it's asynchronous.

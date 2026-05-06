@@ -1,0 +1,162 @@
+import {
+    AbstractWraplet,
+    AbstractDependentWraplet,
+    type WrapletDependencyMap,
+} from "wraplet";
+
+// This is a simple "tabs" (tabbed content) example.
+//
+// We have three subcomponents:
+// - TabButton: a single tab button at the top.
+// - TabPanel: a single content panel that may be shown or hidden.
+// - Tabs: the top wraplet that wires buttons and panels together.
+//
+// Buttons are matched with their panels by an id stored in
+// "data-js-tabs--target" (button) and "data-js-tabs--panel-id" (panel).
+// Thanks to that, the order of buttons and panels in the DOM doesn't matter.
+
+/**
+ * Dependency classes
+ */
+
+// Wraps a single tab button.
+class TabButton extends AbstractWraplet<HTMLElement> {
+
+    // Returns the id of the panel this button should activate.
+    public getTargetId(): string {
+        // We rely on the "data-js-tabs--target" attribute, so we
+        // strictly require it to be present. An early, descriptive
+        // error is better than a silent bug.
+        const target = this.node.dataset["jsTabs-Target"];
+        if (!target) {
+            throw new Error(
+                "TabButton is missing the \"data-js-tabs--target\" attribute."
+            );
+        }
+        return target;
+    }
+
+    // Visually marks the button as active/inactive.
+    public setActive(active: boolean): void {
+        this.node.classList.toggle("active", active);
+        this.node.setAttribute("aria-selected", active ? "true" : "false");
+    }
+
+    public addClickListener(listener: () => void): void {
+        // We register listeners through the NodeManager so that they
+        // are automatically cleaned up during the wraplet's destruction.
+        this.nodeManager.addListener("click", () => {
+            listener();
+        });
+    }
+}
+
+// Wraps a single content panel.
+class TabPanel extends AbstractWraplet<HTMLElement> {
+
+    // Returns the id of this panel, used to match it with a button.
+    public getId(): string {
+        const id = this.node.dataset["jsTabs-PanelId"];
+        if (!id) {
+            throw new Error(
+                "TabPanel is missing the \"data-js-tabs--panel-id\" attribute."
+            );
+        }
+        return id;
+    }
+
+    public show(): void {
+        this.node.classList.add("active");
+        this.node.classList.remove("d-none");
+    }
+
+    public hide(): void {
+        this.node.classList.remove("active");
+        this.node.classList.add("d-none");
+    }
+}
+
+/**
+ * Dependency map
+ */
+
+// "buttons" and "panels" are both "multiple" dependencies, so we can
+// freely add or remove tabs in the HTML and everything will still work.
+const map = {
+
+    buttons: {
+        selector: "[data-js-tabs__button]",
+        Class: TabButton,
+        required: true,
+        multiple: true,
+    },
+
+    panels: {
+        selector: "[data-js-tabs__panel]",
+        Class: TabPanel,
+        required: true,
+        multiple: true,
+    },
+
+} satisfies WrapletDependencyMap;
+
+/**
+ * Top wraplet
+ */
+
+// "Tabs" is the top wraplet that ties everything together.
+//
+// It accesses its children through "this.d" provided by the
+// Dependency Manager. The children share its lifecycle, so when
+// "Tabs" is destroyed, all listeners registered by buttons through
+// the NodeManager are cleaned up automatically.
+class Tabs extends AbstractDependentWraplet<HTMLElement, typeof map> {
+
+    protected override async onInitialize() {
+        // Register a click listener on every button.
+        for (const button of this.d.buttons) {
+            button.addClickListener(() => {
+                this.activate(button.getTargetId());
+            });
+        }
+    }
+
+    // Activates the panel with the given id and the matching button.
+    // All other panels and buttons get deactivated.
+    public activate(targetId: string): void {
+        for (const panel of this.d.panels) {
+            if (panel.getId() === targetId) {
+                panel.show();
+            } else {
+                panel.hide();
+            }
+        }
+
+        for (const button of this.d.buttons) {
+            button.setActive(button.getTargetId() === targetId);
+        }
+    }
+
+    // Static helper that instantiates and initializes all "Tabs"
+    // wraplets found in the given parent node.
+    public static async create(parentNode: ParentNode = document) {
+        return this.createAndInitializeDependentWraplets(
+            parentNode,
+            "data-js-tabs",
+            map,
+        );
+    }
+}
+
+/**
+ * Creating tab components.
+ */
+
+const tabs = await Tabs.create(document);
+
+// You can call "tabs[0].activate('profile')" from the console to
+// switch tabs programmatically.
+//
+// Try adding another button and a corresponding panel in the HTML -
+// because the dependency map uses "multiple: true", the new tab will
+// be picked up automatically without changing any TypeScript code.

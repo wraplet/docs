@@ -1,0 +1,97 @@
+import {
+    AbstractWraplet,
+    AbstractDependentWraplet,
+    type WrapletDependencyMap
+} from "wraplet";
+
+/*
+ * Dependencies.
+ */
+
+class TabButton extends AbstractWraplet<HTMLElement> {
+
+    public addClickListener(callback: (button: TabButton) => void) {
+        this.nodeManager.addListener("click", () => callback(this));
+    }
+
+    public getTargetId(): string {
+        return this.node.getAttribute("data-js-tabs__tab--target");
+    }
+
+}
+
+/*
+ * Our panel is only able to show and hide.
+ */
+class TabPanel extends AbstractWraplet<HTMLElement> {
+
+    public getId(): string {
+        // New ID source.
+        return this.node.getAttribute("data-js-tabs__panel--id");
+    }
+
+    public show() {
+        this.node.classList.add("active");
+    }
+
+    public hide() {
+        this.node.classList.remove("active");
+    }
+
+}
+
+/*
+ * Dependency map.
+ */
+
+const map = {
+    buttons: {
+        // New buttons identifier.
+        selector: "[data-js-tabs__tab]",
+        Class: TabButton,
+        required: true,
+        multiple: true,
+    },
+    panels: {
+        // New panels identifier.
+        selector: "[data-js-tabs__panel]",
+        Class: TabPanel,
+        required: true,
+        multiple: true,
+    },
+} satisfies WrapletDependencyMap;
+
+/*
+ * Main wraplet.
+ */
+
+class Tabs extends AbstractDependentWraplet<HTMLElement, typeof map> {
+
+    protected override async onInitialize() {
+        // Updated logic.
+        for (const button of this.d.buttons) {
+            button.addClickListener((button) => {
+                const targetPanelId = button.getTargetId();
+                for (const panel of this.d.panels) {
+                    if (panel.getId() === targetPanelId) {
+                        panel.show();
+                    } else {
+                        panel.hide();
+                    }
+                }
+            });
+        }
+
+    }
+
+    public static async create() {
+        return this.createAndInitializeDependentWraplets(
+            document,
+            // New Tabs identifier: an attribute.
+            "data-js-tabs",
+            map,
+        );
+    }
+}
+
+await Tabs.create();

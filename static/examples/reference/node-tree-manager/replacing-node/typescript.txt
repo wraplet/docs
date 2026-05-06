@@ -1,0 +1,47 @@
+import { AbstractWraplet, DNTM } from "wraplet";
+
+class ExampleWraplet extends AbstractWraplet<HTMLElement> {
+    public async onInitialize() {
+        this.nodeManager.addListener("click", () => {
+            this.node.style.color = "red";
+        });
+    }
+
+    public static create(node: ParentNode) {
+        return this.createAndInitializeWraplets(node, "data-js-example");
+    }
+}
+
+const treeManager = new DNTM();
+
+// We initialize ExampleWraplets for each initialized node.
+// This way we can keep the initialization logic in a single place.
+treeManager.addNodeInitializer(async (node: ParentNode) => {
+    await ExampleWraplet.create(node);
+});
+
+const container = document.querySelector("[data-js-container]");
+
+// This code simulates adding and removing an HTML element.
+let toggle = true;
+setInterval(() => {
+    if (toggle) {
+        // Prepare new node.
+        // `newNodeString` might be returned from the backend.
+        const newNodeString = "<div data-js-example>Click me!</div>";
+        const newNode = document.createElement("div");
+        newNode.innerHTML = newNodeString;
+        // Initialize wraplets on the new node.
+        treeManager.initializeNode(newNode);
+        // Append the new node to the container.
+        container.appendChild(newNode);
+    } else {
+        // Destroy all wraplets related to the container
+        // or its descendants.
+        treeManager.destroyNode(container);
+        // Empty the container.
+        container.innerHTML = "";
+    }
+
+    toggle = !toggle;
+}, 2000);

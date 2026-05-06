@@ -1,0 +1,31 @@
+<!--
+  For superior readibility, we'll be finding our elements for JS
+  purposes using attributes instead of classes. This way we decouple
+  the view (styles) from the controller (JS).
+-->
+<div data-js-tabs class="tabs">
+  <ul class="tabs-nav">
+    <!--
+      Dynamic selector was useless. Let's simplify.
+
+      Note that we use a attribute-naming convention resembling
+      the BEM methodology. The difference is that here the double
+      underscore indicates the elements that our main wraplet
+      depends on. This is for extra readability.
+    -->
+    <li><a data-js-tabs__tab data-js-tabs__tab--target="tab1" class="active">Tab 1</a></li>
+    <li><a data-js-tabs__tab data-js-tabs__tab--target="tab2">Tab 2</a></li>
+    <li><a data-js-tabs__tab data-js-tabs__tab--target="tab3">Tab 3</a></li>
+  </ul>
+
+  <div class="tabs-content">
+    <!--
+      What if we had multiple tabs on the page?
+      Let's remove the "id" attribute to remove possible id
+      duplicates and use a custom attribute instead. Much better.
+    -->
+    <div data-js-tabs__panel data-js-tabs__panel--id="tab1" class="tab-panel active">Zawartość 1</div>
+    <div data-js-tabs__panel data-js-tabs__panel--id="tab2" class="tab-panel">Zawartość 2</div>
+    <div data-js-tabs__panel data-js-tabs__panel--id="tab3" class="tab-panel">Zawartość 3</div>
+  </div>
+</div>

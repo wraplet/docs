@@ -1,0 +1,24 @@
+import { AbstractWraplet } from "wraplet";
+
+
+class MyWraplet extends AbstractWraplet<HTMLElement> {
+    // This is a handy hook executed during the wraplet initialization.
+    public async onInitialize() {
+        // You will be able to click on the container
+        // to change its background color.
+        this.nodeManager.addListener("click", () => {
+            this.node.style.backgroundColor = "red"
+        });
+    }
+}
+
+const element: HTMLElement = document.querySelector("[data-js-mywraplet]");
+
+const mywraplet = new MyWraplet(element);
+
+await mywraplet.wraplet.initialize();
+
+// Uncomment the below code to see that the listener will stop working,
+// indicating that it has been automatically removed from the node.
+//
+// await mywraplet.wraplet.destroy();

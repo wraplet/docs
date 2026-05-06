@@ -1,0 +1,47 @@
+import {
+    AbstractWraplet,
+    DDM,
+    WrapletSet,
+    type WrapletDependencyMap,
+} from "wraplet";
+
+class TestDependency extends AbstractWraplet<HTMLElement> {}
+
+const map = {
+    requiredDep: {
+        selector: "[data-js-mywraplet__1]",
+        Class: TestDependency,
+        required: true,
+        multiple: false,
+    },
+    optionalDep: {
+        selector: "[data-js-mywraplet__2]",
+        Class: TestDependency,
+        required: false,
+        multiple: false,
+    },
+    multipleDep: {
+        selector: "[data-js-mywraplet__3]",
+        Class: TestDependency,
+        required: false,
+        multiple: true,
+    },
+} satisfies WrapletDependencyMap;
+
+const ddm = new DDM(document, map);
+
+ddm.instantiateDependencies();
+await ddm.initializeDependencies();
+
+// This is a required dependency.
+const requiredDep: TestDependency = ddm.dependencies.requiredDep;
+
+// This is an optional one. It can have a null value, so
+// make sure that you'll check its value before using it!
+const optionalDep: TestDependency | null = ddm.dependencies.optionalDep;
+
+// This one is a WrapletSet! You can iterate over it to
+// act on all its members.
+const multipleDep: WrapletSet<TestDependency> = ddm.dependencies.multipleDep;
+
+

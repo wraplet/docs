@@ -1,0 +1,27 @@
+---
+id: lifecycle
+title: Lifecycle
+slug: /concepts/lifecycle
+sidebar_position: 5
+---
+
+A big part of wraplet is lifecycle management. Each wraplet can be:
+1. instantiated (synchronously),
+2. initialized (asynchronously),
+3. destroyed (asynchronously).
+
+This is a diagram of the actual flow:
+
+```mermaid
+flowchart TD
+    A["MyWraplet extends AbstractWraplet or AbstractDependentWraplet"] -- "instantiation happened" --> B[constructor]
+    B --> C["**if dependent wraplet** dependencies are instantiated"]
+    C --> D["instantiated but not initialized"]
+    D -- "initialization happened" --> E["**if dependent wraplet** wraplet.initialize() on all dependencies"]
+    E --> F["onInitialize()"]
+    F --> G["ready"]
+    G -- "destruction happened" --> H["onDestroy()"]
+    H --> I["**if dependent wraplet** wraplet.destroy() on all dependencies"]
+    I --> J["nodeManager cleanup"]
+    J --> K["destroyed"]
+```

@@ -1,0 +1,40 @@
+import {
+    AbstractWraplet,
+    AbstractDependentWraplet,
+    DDM,
+    type WrapletDependencyMap
+} from "wraplet";
+
+class Container extends AbstractWraplet<HTMLElement> {
+    // This is a handy hook executed during the wraplet's initialization.
+    public async onInitialize() {
+        this.node.innerHTML = "Container is initialized!"
+    }
+}
+
+const map = {
+    container: {
+        selector: "[data-js-mywraplet__container]",
+        Class: Container,
+        required: true,
+        multiple: false,
+    },
+} satisfies WrapletDependencyMap;
+
+class MyWraplet extends AbstractDependentWraplet<HTMLElement, typeof map> {}
+
+const element: HTMLElement = document.querySelector("[data-js-mywraplet]");
+
+// DDM is the default dependency manager's implementation provided
+// by the Wraplet library.
+const dependencyManager = new DDM(element, map);
+
+const mywraplet = new MyWraplet(dependencyManager);
+
+// `dependencyManager.instantiateDependencies()` already happened in the
+// AbstractDependentWraplet's constructor, so we don't need to call
+// it here.
+
+// This executes `dependencyManager.initializeDependencies()`
+// making sure that the wraplet and all its dependencies are initialized.
+await mywraplet.wraplet.initialize();

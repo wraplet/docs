@@ -1,0 +1,22 @@
+$(document).ready(function () {
+  $(".tabs-nav a").on("click", function (e) {
+    e.preventDefault();
+
+    const $this = $(this);
+    const target = $this.attr("href");
+
+    // switch active tab
+    $this
+      .closest(".tabs")
+      .find(".tabs-nav a")
+      .removeClass("active");
+
+    $this.addClass("active");
+
+    // switch content
+    const $tabsContainer = $this.closest(".tabs");
+
+    $tabsContainer.find(".tab-panel").removeClass("active");
+    $tabsContainer.find(target).addClass("active");
+  });
+});

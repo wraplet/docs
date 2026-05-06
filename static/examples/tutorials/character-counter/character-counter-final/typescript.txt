@@ -1,0 +1,76 @@
+import {
+    AbstractWraplet,
+    AbstractDependentWraplet,
+    type WrapletDependencyMap,
+} from "wraplet";
+
+/*
+ * Dependencies.
+ */
+
+class Input extends AbstractWraplet<HTMLInputElement> {
+
+    public addCountChangeListener(listener: (newCount: number) => void) {
+        this.nodeManager.addListener("keyup", () => listener(this.node.value.length));
+    }
+
+    protected override supportedNodeTypes() {
+        return this.supportedNodeTypesGuard([HTMLInputElement]);
+    }
+}
+
+class Display extends AbstractWraplet<HTMLInputElement> {
+
+    public setValue(value: number): void {
+        this.node.value = value.toString();
+    }
+
+    protected override supportedNodeTypes() {
+        return this.supportedNodeTypesGuard([HTMLInputElement]);
+    }
+}
+
+/*
+ * Dependency map.
+ */
+
+const map = {
+    input: {
+        selector: "[data-js-counter__input]",
+        Class: Input,
+        required: true,
+        multiple: false,
+    },
+    display: {
+        selector: "[data-js-counter__display]",
+        Class: Display,
+        required: true,
+        multiple: false,
+    },
+} satisfies WrapletDependencyMap;
+
+/*
+ * Counter wraplet.
+ */
+
+class Counter extends AbstractDependentWraplet<Node, typeof map> {
+    protected override async onInitialize() {
+        this.d.input.addCountChangeListener((newCount) => {
+            this.d.display.setValue(newCount);
+        });
+    }
+
+    public static async create(attribute: string) {
+        return this.createAndInitializeDependentWraplets(
+            document,
+            attribute,
+            map,
+        );
+    }
+}
+
+/*
+ * Initialization.
+ */
+
+const counters = await Counter.create("data-js-counter");

@@ -1,0 +1,27 @@
+import { AbstractWraplet } from "wraplet";
+
+class ExampleWraplet extends AbstractWraplet<HTMLElement> {
+    public setValue(value: string): void {
+        this.node.innerHTML = value;
+    }
+
+    public static async create(attribute: string) {
+        // `AbstractWraplet` provides a `createAndInitializeWraplets`
+        // method to easily find all elements with a given attribute
+        // in a given node, and then instantiate and initialize
+        // as many instances of the current class as the number of
+        // nodes found; one wrapping each node.
+        //
+        // This makes instantiation and initialization a bit more
+        // declarative.
+        return this.createAndInitializeWraplets(document, attribute);
+    }
+}
+
+
+const examples = await ExampleWraplet.create("data-js-example");
+
+for (const example of examples) {
+    example.setValue("Value has been set!");
+    await example.wraplet.destroy();
+}

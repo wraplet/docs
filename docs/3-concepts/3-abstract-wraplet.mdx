@@ -1,0 +1,35 @@
+---
+id: abstract-wraplet
+title: AbstractWraplet
+slug: /concepts/abstract-wraplet
+sidebar_position: 3
+---
+
+`AbstractWraplet` and `AbstractDependentWraplet` are thin base classes implementing the `Wraplet` interface.
+
+By extending one of them, you can save a few lines of code, compared to implementing the `Wraplet` interface manually.
+
+## AbstractWraplet
+
+`AbstractWraplet` is a simple wrapper over a document's node provisioned with some protected methods
+that allow to run stuff during different stages of the wraplet's lifecycle.
+
+It also provides a few static helpers for creating instances of classes extending the `AbstractWraplet`.
+
+## AbstractDependentWraplet
+
+`AbstractDependentWraplet` is a wrapper over a `DependencyManager` that wraps a document's node. So `AbstractDependentWraplet`
+wraps node indirectly.
+
+It extends `AbstractWraplet` and provides some of the same helpers, but it's made to work specifically with `DependencyManager`.
+
+## When to use AbstractWraplet vs AbstractDependentWraplet
+
+- When your wraplet is a `leaf` – it doesn't depend on other wraplets, extend `AbstractWraplet`.
+- When you need to create a wraplet that depends on other wraplets, you should use `AbstractDependentWraplet`.
+
+## Reference
+
+- [AbstractWraplet](/docs/reference/abstract-wraplet)
+- [AbstractDependentWraplet](/docs/reference/abstract-dependent-wraplet)
+- [Wraplet](/docs/reference/wraplet)

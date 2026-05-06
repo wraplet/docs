@@ -1,0 +1,400 @@
+---
+id: how-to-think-in-wraplet
+title: How to think in Wraplet
+slug: /how-to-think-in-wraplet
+sidebar_position: 2
+---
+
+Wraplet is not only a way to attach JavaScript or TypeScript logic to DOM elements.
+
+It is a way to model DOM-based interfaces as a set of small, explicit, lifecycle-aware objects. Each wraplet represents a meaningful piece of behavior connected to a real node, and larger features emerge by composing wraplets together.
+
+This page explains the mental model behind Wraplet: how to decide what should become a wraplet, how to split responsibilities, how to think about dependencies, and how to avoid turning your code into one large controller again.
+
+## The core idea
+
+When working with Wraplet, do not start by asking:
+
+> How do I add some JavaScript to this element?
+
+Instead, ask:
+
+> What responsibility lives around this part of the DOM?
+
+A wraplet should usually represent a clear responsibility:
+
+- managing an input,
+- coordinating a form,
+- controlling a dropdown,
+- synchronizing a value with a display,
+- wrapping an external widget,
+- organizing a group of smaller DOM-based components.
+
+The DOM is still real. Wraplet does not ask you to replace it with a virtual rendering model. Instead, it helps you give structure, lifecycle, and explicit relationships to the interface that already exists.
+
+## A wraplet is a unit of responsibility
+
+A wraplet is best understood as an object responsible for one meaningful part of the interface.
+
+It is connected to a node, but it should not be treated as a thin alias for that node. The node is the place where the wraplet lives. The responsibility is the reason why the wraplet exists.
+
+For example, this is a good way to think:
+
+- "This wraplet manages the quantity input."
+- "This wraplet coordinates the calculator."
+- "This wraplet displays the current value."
+- "This wraplet adapts a third-party date picker to our application."
+
+This is usually a weaker way to think:
+
+- "This wraplet is for this `div`."
+- "This wraplet contains all code for the page."
+- "This wraplet exists because I needed somewhere to put a selector."
+- "This wraplet is a bag of unrelated DOM helpers."
+
+A good wraplet should be easy to describe in one sentence.
+
+If you cannot describe what a wraplet is responsible for without listing many unrelated tasks, it may be too large.
+
+## Start from behavior, not from markup alone
+
+Wraplet works close to the DOM, but that does not mean every DOM element needs its own wraplet.
+
+A DOM node is a good candidate for a wraplet when:
+
+- it has behavior of its own,
+- it owns event listeners or other resources,
+- it participates in a larger component structure,
+- it exposes a useful interface to other wraplets,
+- it needs lifecycle management,
+- it hides implementation details that should not leak to its parent.
+
+A DOM node is usually not a good candidate for a wraplet when:
+
+- it only exists for layout,
+- it only exists for styling,
+- it has no behavior,
+- it is only an internal implementation detail of another wraplet,
+- it can be handled by a small private method.
+
+The goal is not to turn the whole DOM into classes. The goal is to create useful boundaries around behavior.
+
+## Think in parent and child responsibilities
+
+Larger features are usually easier to understand when they are split into parent and child wraplets.
+
+A parent wraplet should usually coordinate. It may:
+
+- define the structure of the feature,
+- create or receive child wraplets,
+- react to child state,
+- combine multiple smaller behaviors,
+- expose a higher-level API.
+
+A child wraplet should usually specialize. It may:
+
+- manage a single input,
+- display a value,
+- control one interactive element,
+- encapsulate a third-party widget,
+- expose a small interface to its parent.
+
+The parent should know what role a child plays, but it should not need to know every internal DOM detail of that child.
+
+For example, a form wraplet should not necessarily know how each field stores its internal error node, label node, or event listeners. It should depend on a field-like interface such as:
+
+- get the current value,
+- set an error,
+- clear an error,
+- enable or disable the field.
+
+This keeps the parent focused on coordination instead of low-level DOM manipulation.
+
+## Dependencies describe architecture
+
+In Wraplet, dependencies are not only a more convenient way to call `querySelector`.
+
+A dependency map describes the internal architecture of a wraplet. It says:
+
+- what child parts the wraplet needs,
+- whether they are required or optional,
+- whether there is one instance or many,
+- which class should be used to represent each part,
+- how the dependency participates in lifecycle management.
+
+That makes dependencies part of the component design.
+
+Before adding a dependency, ask:
+
+- Is this really part of this wraplet's structure?
+- Should the parent access it directly?
+- Would this be better hidden inside another child wraplet?
+- Is this dependency required for the parent to work?
+- Should there be one instance or many?
+- Should this dependency be destroyed together with the parent?
+
+A good dependency map should make the component easier to understand. If the map becomes a list of unrelated elements, it may be a sign that the parent wraplet has too many responsibilities.
+
+## Lifecycle is part of the design
+
+A wraplet is not just a plain object. It is an object with a lifecycle.
+
+That means you should think about three separate moments:
+
+1. construction,
+2. initialization,
+3. destruction.
+
+Construction creates the object. Initialization makes it ready to work. Destruction cleans up the resources it owns.
+
+This separation is useful because real UI behavior often needs setup and cleanup:
+
+- adding event listeners,
+- initializing child wraplets,
+- connecting external widgets,
+- subscribing to external services,
+- starting timers,
+- attaching observers,
+- cleaning everything up when the feature is removed.
+
+When designing a wraplet, ask:
+
+- What should happen when it initializes?
+- What must be cleaned up when it is destroyed?
+- Does it own event listeners?
+- Does it own child wraplets?
+- Does it own external resources?
+- Can other code safely use it before initialization?
+
+Lifecycle should not be an afterthought. It is one of the main reasons to use Wraplet.
+
+## Keep public APIs small and meaningful
+
+A wraplet should hide its internal DOM details as much as possible.
+
+Avoid exposing implementation details unless there is a good reason. For example, be careful with public APIs that expose:
+
+- raw internal nodes,
+- internal selectors,
+- internal child structures,
+- low-level helper methods,
+- methods that only exist because the current DOM implementation happens to need them.
+
+Prefer public APIs that express intent:
+
+- `getValue()`,
+- `setValue(value)`,
+- `show()`,
+- `hide()`,
+- `enable()`,
+- `disable()`,
+- `setError(message)`,
+- `clearError()`,
+- `refresh()`.
+
+The parent wraplet should talk to the child wraplet in terms of behavior, not in terms of internal markup.
+
+This makes your code easier to refactor. You can change the child's HTML structure without changing every parent that uses it.
+
+## Treat functional attributes as a contract
+
+When you use selectors to find parts of the DOM, those selectors become part of the contract between HTML and TypeScript.
+
+For this reason, it is usually a good idea to use stable functional attributes, such as `data-*` attributes, for JavaScript behavior.
+
+A useful convention is:
+
+- CSS classes are for styling,
+- `data-*` attributes are for behavior and structure.
+
+This makes the intent clear:
+
+- changing visual styles should not break JavaScript behavior,
+- changing JavaScript behavior should not require renaming CSS classes,
+- the markup exposes stable integration points for wraplets.
+
+The exact naming convention is up to your project, but the important part is consistency.
+
+## Not everything should be a wraplet
+
+Wraplet is a framework for organizing DOM-related behavior. It is not a replacement for every other kind of object in your application.
+
+Some things are better as normal functions, classes, or services.
+
+Good candidates for plain utilities or services include:
+
+- formatting functions,
+- validators that do not depend on the DOM,
+- API clients,
+- data mappers,
+- calculation logic,
+- domain rules,
+- configuration builders.
+
+For example, a calculator interface may be a wraplet, but the actual arithmetic logic does not need to be one. The arithmetic can live in a normal function or service and be used by the wraplet.
+
+This separation keeps wraplets focused on DOM-related behavior and lifecycle, while pure logic remains easy to test independently.
+
+## Prefer composition over large controllers
+
+A common mistake in DOM-based codebases is creating one large object that controls an entire page.
+
+It starts simple:
+
+- find a few nodes,
+- add a few event listeners,
+- update a few values.
+
+Then it grows:
+
+- more selectors,
+- more state,
+- more event handlers,
+- more conditions,
+- more cleanup problems,
+- more coupling between unrelated parts of the page.
+
+Wraplet helps avoid this by encouraging composition.
+
+Instead of one large controller, prefer a tree of smaller wraplets:
+
+- a parent wraplet coordinates the feature,
+- child wraplets own smaller pieces,
+- each child hides its own DOM details,
+- lifecycle can be managed consistently.
+
+If a wraplet keeps growing, ask whether some of its responsibilities should be broken down into more wraplets.
+
+## Think in collaboration, not global scripts
+
+Wraplet code should feel like a set of collaborating objects.
+
+Each object should have:
+
+- a clear responsibility,
+- a clear lifecycle,
+- clear dependencies,
+- a small public interface,
+- ownership of the resources it creates.
+
+This is different from a script-oriented approach where one file finds many unrelated elements and wires everything together manually.
+
+In Wraplet, the structure should be visible in the code.
+
+When you open a wraplet class, you should be able to understand:
+
+- what node it represents,
+- what dependencies it has,
+- what it initializes,
+- what it destroys,
+- what it exposes to other wraplets.
+
+If understanding a wraplet requires following many unrelated selectors and hidden side effects, the design may need to be simplified.
+
+## Separate DOM behavior from pure logic
+
+A useful way to structure your code is to think in three layers:
+
+1. **HTML / DOM**
+   The real structure of the interface and stable integration points.
+
+2. **Wraplets**
+   Lifecycle-aware objects that attach behavior to DOM nodes and coordinate other wraplets.
+
+3. **Pure logic and services**
+   Code that does not need direct access to DOM nodes.
+
+This helps keep responsibilities clear.
+
+A wraplet may call a validator, formatter, API client, or domain service. But those things do not need to become wraplets unless they are directly tied to DOM behavior and lifecycle.
+
+## Design checklist
+
+When designing a new wraplet, ask the following questions:
+
+1. What is the root node of this wraplet?
+2. What responsibility does this wraplet have?
+3. Can I describe that responsibility in one sentence?
+4. Does this object need lifecycle management?
+5. What should happen during initialization?
+6. What must be cleaned up during destruction?
+7. What child wraplets does it need?
+8. Which dependencies are required and which are optional?
+9. Should any dependency represent multiple instances?
+10. What public API should this wraplet expose?
+11. Is some of this logic pure enough to move into a utility or service?
+12. Will this wraplet be easy to test in isolation?
+13. Is this wraplet too large?
+14. Would the design be clearer if part of it became a child wraplet?
+
+You do not need to answer all of these questions formally every time. But they are useful when a component starts to grow.
+
+## Common anti-patterns
+
+### One wraplet for the whole page
+
+A page-level wraplet may be useful if you need to coordinate some specific behaviors that can exist anywhere on the page,
+but it should not handle all behavior on the page.
+
+If it knows about every input, button, label, modal, tab, tooltip, and API call, it probably has too many responsibilities.
+
+### Exposing too much internal DOM
+
+If parent wraplets reach into child wraplets to directly manipulate their internal nodes, encapsulation is weak.
+
+Prefer meaningful methods on the child wraplet.
+
+Instead of letting the parent change classes on an internal error node, expose a method such as:
+
+```typescript
+someWraplet.setError("This field is required");
+```
+
+The child can decide how that error is rendered.
+
+### Treating dependency maps as selector bags
+
+A dependency map should describe meaningful dependencies, not just every element that was convenient to query.
+
+If a dependency map contains many unrelated nodes, the wraplet may need to be split.
+
+### Making pure logic into wraplets
+
+If something does not need a DOM node, does not own resources, and does not need lifecycle management, it probably does not need to be a wraplet.
+
+Keep pure logic pure.
+
+### Ignoring destruction
+
+If a wraplet adds listeners, starts timers, creates observers, or initializes external resources, it should also clean them up.
+
+Destroy logic is not optional in long-lived or dynamically updated interfaces.
+
+**Note**: You can use a [NodeManager](/docs/concepts/node-manager) that is automatically wired up in the `AbstractWraplet` and `AbstractDependentWraplet`
+to automate some if it, though.
+
+### Coupling behavior to styling selectors
+
+Using CSS classes as JavaScript hooks can make behavior fragile. A styling refactor may accidentally break the application.
+
+Prefer stable functional attributes for wraplet selectors.
+
+## Summary
+
+Thinking in Wraplet means thinking about DOM-based interfaces as a set of explicit, lifecycle-aware objects.
+
+A good Wraplet design usually follows these principles:
+
+- model responsibilities, not just elements,
+- keep wraplets small and focused,
+- use parent wraplets for coordination,
+- use child wraplets for specialized behavior,
+- treat dependencies as architecture,
+- make lifecycle part of the design,
+- expose small and meaningful public APIs,
+- keep pure logic outside wraplets,
+- prefer composition over large controllers,
+- use stable DOM contracts for behavior.
+
+Wraplet works best when it makes the structure of your interface easier to see, reason about, test, and evolve.
+

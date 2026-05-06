@@ -1,0 +1,52 @@
+import {
+    AbstractWraplet,
+} from "wraplet";
+
+/*
+ * Main wraplet.
+ */
+
+class Tabs extends AbstractWraplet<HTMLElement> {
+
+    protected override async onInitialize() {
+        this.nodeManager.addListenerTo(
+            ".tabs-nav a",
+            "click",
+            (event) => {
+                const tabElement = event.currentTarget as HTMLElement;
+
+                const targetPaneId =
+                    tabElement.getAttribute(
+                        "data-js-tabs__tab--target"
+                    );
+
+                const targetPanelElement =
+                    this.node.querySelector(
+                        `[data-js-tabs__panel--id=${targetPaneId}]`
+                    );
+
+                const panelElements =
+                    this.node.querySelectorAll<HTMLElement>(
+                        ".tab-panel"
+                    );
+                for (const panelElement of panelElements) {
+                    if (panelElement === targetPanelElement) {
+                        panelElement.classList.add("active");
+                    } else {
+                        panelElement.classList.remove("active");
+                    }
+                }
+            },
+        )
+    }
+
+    public static async create() {
+        return this.createAndInitializeWraplets(
+            document,
+            // Now we search for an attribute.
+            "data-js-tabs",
+        );
+    }
+}
+
+await Tabs.create();

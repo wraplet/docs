@@ -1,0 +1,69 @@
+import { AbstractWraplet, AbstractDependentWraplet, type WrapletDependencyMap } from "wraplet";
+
+class Input extends AbstractWraplet<HTMLInputElement> {
+
+    public addChangeListener(callback: (input: Input) => void) {
+        this.nodeManager.addListener("change", () => {
+            callback(this);
+        });
+    }
+
+    public getValue(): boolean {
+        return this.node.checked;
+    }
+
+    protected supportedNodeTypes() {
+      return super.supportedNodeTypesGuard([HTMLInputElement]);
+    }
+}
+
+
+class Output extends AbstractWraplet<HTMLElement> {
+    public setValue(value: string): void {
+        this.node.innerHTML = value;
+    }
+}
+
+const map = {
+    inputs: {
+        selector: "[data-js-example__input]",
+        Class: Input,
+        required: true,
+        multiple: true,
+    },
+    output: {
+        selector: "[data-js-example__output]",
+        Class: Output,
+        required: true,
+        multiple: false,
+    },
+} satisfies WrapletDependencyMap;
+
+class ExampleDependentWraplet extends AbstractDependentWraplet<HTMLElement, typeof map> {
+
+    protected async onInitialize() {
+        this.updateOutput();
+        for (const input of this.d.inputs) {
+            input.addChangeListener(this.updateOutput.bind(this));
+        }
+    }
+
+    private updateOutput() {
+        let counter = 1;
+        let output = '';
+        for (const input of this.d.inputs) {
+            output += `${counter}: ${input.getValue()}<br/>`
+            counter++;
+        }
+        this.d.output.setValue(output);
+    }
+
+    public static async create(node: ParentNode, selector: string) {
+        return this.createAndInitializeDependentWraplets(node, selector, map);
+    }
+}
+
+const wraplets = await ExampleDependentWraplet.create(
+    document,
+    "data-js-example",
+);

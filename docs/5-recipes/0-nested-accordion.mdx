@@ -1,0 +1,35 @@
+---
+id: recipes-nested-accordion
+title: Nested accordion
+slug: /recipes/nested-accordion
+sidebar_position: 0
+---
+
+This complex example showcases an arbitrarily deeply nested accordion.
+
+It can be used to build a multi-level mobile menu.
+
+As an exercise you can make it so that if one item gets opened, other items close.
+For this the `Accordion` class needs to listen to its items, to know which one opens,
+
+Can you do this?
+
+import BrowserOnly from "@docusaurus/BrowserOnly";
+
+<BrowserOnly>
+    {() => {
+        const Example = require("@site/src/components/Example").default;
+        const MonacoEditor = require("@site/src/components/MonacoEditor").default;
+
+        return (
+            <Example loadComments={false}>
+                <h4>CSS</h4>
+                <MonacoEditor contentUrl="/examples/recipes/nested-accordion/style.css" language="css" height="300px" />
+                <h4>HTML</h4>
+                <MonacoEditor contentUrl="/examples/recipes/nested-accordion/html.htm" language="html" height="500px" />
+                <h4>TypeScript</h4>
+                <MonacoEditor contentUrl="/examples/recipes/nested-accordion/typescript.txt" language="typescript" height="620px" />
+            </Example>
+        );
+    }}
+</BrowserOnly>

@@ -1,0 +1,115 @@
+import {
+    AbstractWraplet,
+    AbstractDependentWraplet,
+    type WrapletDependencyMap,
+    type DependencyManager,
+} from "wraplet";
+
+/**
+ * Dependencies.
+ */
+
+class ListItem extends AbstractWraplet<HTMLElement> {}
+
+class Counter extends AbstractWraplet<HTMLElement> {
+    public setValue(value: number): void {
+        this.node.innerHTML = value.toString();
+    }
+
+    public increment() {
+        this.node.innerHTML =
+            (parseInt(this.node.innerHTML) + 1).toString();
+    }
+}
+
+const map = {
+    counterCurrent: {
+        selector: "[data-js-list__counter-current]",
+        Class: Counter,
+        required: true,
+        multiple: false,
+    },
+    counterInited: {
+        selector: "[data-js-list__counter-inited]",
+        Class: Counter,
+        required: true,
+        multiple: false,
+    },
+    counterDestroyed: {
+        selector: "[data-js-list__counter-destroyed]",
+        Class: Counter,
+        required: true,
+        multiple: false,
+    },
+    items: {
+        selector: "[data-js-list__item]",
+        Class: ListItem,
+        required: false,
+        multiple: true,
+    },
+} satisfies WrapletDependencyMap;
+
+class List extends AbstractDependentWraplet<HTMLElement, typeof map> {
+
+    constructor(dm: DependencyManager<HTMLElement, typeof map>) {
+        super(dm);
+
+        // This allows us to act on items' lifecycle events
+        // each time they happen, instead of only once.
+
+        dm.addDependencyInitializedListener("items",
+            async (item) => {
+                this.d.counterInited.increment();
+            }
+        );
+
+        dm.addDependencyDestroyedListener("items",
+            async (item) => {
+                this.d.counterDestroyed.increment();
+            }
+        );
+    }
+
+    public countItems(): number {
+        return this.d.items.size;
+    }
+
+    public async sync() {
+        await this.dm.syncDependencies();
+        this.d.counterCurrent.setValue(this.countItems());
+    }
+
+    public static create(node: ParentNode) {
+        return this.createAndInitializeDependentWraplets(
+            node,
+            "data-js-list",
+            map,
+        );
+    }
+}
+
+const list: List = (await List.create(document))[0];
+
+const container = document.querySelector("[data-js-list__container]");
+
+// This code simulates adding and removing an HTML element.
+let counter = 2;
+let toggle = true;
+setInterval(async () => {
+    if (toggle) {
+        // Prepare new node.
+        // `newNodeString` might be returned from the backend.
+        const newNodeString = `<div data-js-list__item class="item">List item #${counter}</div>`;
+        const newNode = document.createElement("div");
+        newNode.innerHTML = newNodeString;
+        // Append the new node to the container.
+        container.appendChild(newNode.firstChild);
+        counter++;
+    } else {
+        // Remove the previous item.
+        container.children[0].remove();
+    }
+
+    await list.sync();
+    toggle = !toggle;
+}, 2000);

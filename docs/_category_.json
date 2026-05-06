@@ -1,0 +1,9 @@
+{
+  "label": "ExhibitionJS",
+  "position": 1,
+  "link": {
+    "type": "generated-index",
+    "title": "ExhibitionJS Documentation",
+    "description": "Official documentation migrated from local/docs."
+  }
+}

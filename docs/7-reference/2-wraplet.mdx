@@ -1,0 +1,67 @@
+---
+id: reference-wraplet
+title: Wraplet and WrapletApi
+slug: /reference/wraplet
+sidebar_position: 2
+---
+
+What defines a wraplet is the implementation of the **Wraplet** interface that consists of two properties:
+- The `[WrapletSymbol]` property having the value `true`,
+- The `wraplet` property that implements the `WrapletApi` interface.
+
+`WrapletApi` makes it possible to tie together lifecycles of multiple wraplets, allowing complex components to emerge.
+
+```typescript
+interface Wraplet {
+  [WrapletSymbol]: true;
+  wraplet: WrapletApi;
+}
+````
+
+```typescript
+interface WrapletApi {
+  [WrapletApiSymbol]: true;
+
+  status: Status;
+
+  destroy(): Promise<void>;
+
+  initialize(): Promise<void>;
+
+  addDestroyListener(callback: DestroyListener): void;
+}
+```
+
+WrapletApi's properties are:
+
+## status
+
+```typescript
+interface Status {
+  readonly isInitialized: boolean;
+  readonly isGettingInitialized: boolean;
+  readonly isDestroyed: boolean;
+  readonly isGettingDestroyed: boolean;
+}
+```
+
+The `status` property is a read-only object that contains information about the wraplet's lifecycle.
+
+## destroy
+
+`destroy` is an asynchronous method that's responsible for destroying a wraplet.
+
+## initialize
+
+`initialize` is an asynchronous method that's responsible for initializing a wraplet.
+
+## addDestroyListener
+
+`addDestroyListener` is a method that allows you to add a listener to the wraplet that will be executed
+during wraplet's destruction.
+
+```typescript
+type DestroyListener<W extends Wraplet = Wraplet> = (
+  wraplet: W,
+) => Promise<void>;
+```

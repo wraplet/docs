@@ -1,0 +1,30 @@
+<!--
+  We'll identify our component and subcomponents with attributes
+  instead of the classes to separate the view (styling) from
+  the controller (wraplet)
+-->
+<div data-js-tabs class="tabs">
+  <ul class="tabs-nav">
+    <!--
+      Using the "id" property could cause clashes when other
+      tabs exist on the page, and using dynamic selector
+      was unnecesary making the code overly complex and less
+      performant. We will select panes based on our custom
+      ids instead.
+    -->
+    <li><a data-js-tabs__tab data-js-tabs__tab--target="tab1" class="active">Tab 1</a></li>
+    <li><a data-js-tabs__tab data-js-tabs__tab--target="tab2">Tab 2</a></li>
+    <li><a data-js-tabs__tab data-js-tabs__tab--target="tab3">Tab 3</a></li>
+  </ul>
+
+  <div class="tabs-content">
+    <!--
+      We'll keep the identyfing string in a custom attribute.
+      Its usage will be scoped to this "Tabs" wraplet only,
+      so there will be no "id" clashes across the page.
+    -->
+    <div data-js-tabs__panel data-js-tabs__panel--id="tab1" class="tab-panel active">Zawartość 1</div>
+    <div data-js-tabs__panel data-js-tabs__panel--id="tab2" class="tab-panel">Zawartość 2</div>
+    <div data-js-tabs__panel data-js-tabs__panel--id="tab3" class="tab-panel">Zawartość 3</div>
+  </div>
+</div>

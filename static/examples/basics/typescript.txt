@@ -1,0 +1,68 @@
+import { AbstractWraplet } from "wraplet";
+
+// We'll start by defining our wraplet class.
+//
+// Note that we are passing the element's type
+// into the AbstractWraplet's generic. This tells
+// the wraplet what element it wraps, which allows
+// for correct typehinting and typechecking when
+// interacting with this element.
+//
+// There are also ways of making sure the wrapped-element
+// type is correct on runtime, but we won't be covering
+// that here.
+
+class ExampleWraplet extends AbstractWraplet<HTMLElement> {
+    // We'll create a simple method setting a value
+    // inside our wrapped element.
+    //
+    // The "this.node" property is just a handy shortcut
+    // provided by the "AbstractWraplet" class.
+    public setValue(value: string): void {
+        this.node.innerHTML = value;
+    }
+
+    // This method hooks into the wraplet's lifecycle.
+    // It is called when the wraplet is initialized.
+    public async onInitialize() {
+        // `this.nodeManager` manages our listeners and detaches them
+        // automatically when wraplet gets destroyed, so we don't have
+        // to worry about leaks.
+        this.nodeManager.addListener("click", () => {
+            this.node.style.color = "red";
+        });
+    }
+}
+
+const element: HTMLElement = document.querySelector("[data-js-example]");
+
+const example = new ExampleWraplet(element);
+
+// The `wraplet` property is an API for interacting with a wraplet's
+// lifecycle and some other features.
+//
+// Wraplet should be initialized for the correct lifecycle handling.
+await example.wraplet.initialize();
+
+// And now we can interact with our element
+// through our wraplet's methods.
+example.setValue("Click me!");
+
+// We can destroy our wraplet if we don't need it anymore.
+// Note that after uncommenting this line, clicking the element
+// will no longer change its color.
+//
+// This is because wraplet's built-in "nodeManager" is hooked
+// into the destroy phase of the wraplet's lifecycle and
+// automatically removes all event listeners registered
+// through it.
+//await example.wraplet.destroy();
+
+// This is a very basic example showing how introducing:
+// - an abstraction over element interactions;
+// - lifecycle management;
+// - and type-hinting;
+// Make our code cleaner and more maintainable.
+//
+// However, the real fun starts when we introduce a dependency
+// management next.

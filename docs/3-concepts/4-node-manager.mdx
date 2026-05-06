@@ -1,0 +1,20 @@
+---
+id: node-manager
+title: NodeManager
+slug: /concepts/node-manager
+sidebar_position: 4
+---
+## What is a NodeManager?
+
+NodeManager is an object provided by the wraplet abstract classes
+to manage the node's listeners.
+
+It's wired to the wraplet's lifecycle, which means that
+it automatically removes listeners from the node when the wraplet is destroyed.
+
+That's why it's much better to use it instead of attaching listeners
+to the node directly.
+
+## Reference
+
+- [NodeManager](/docs/reference/node-manager)

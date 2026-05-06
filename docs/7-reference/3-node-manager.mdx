@@ -1,0 +1,91 @@
+---
+id: reference-node-manager
+title: NodeManager
+slug: /reference/node-manager
+sidebar_position: 3
+---
+
+NodeManager is an object provided by the wraplet abstract classes
+to manage the node's listeners.
+
+```typescript
+class NodeManager<N extends Node> {
+```
+
+## Properties and methods
+
+### constructor
+
+```typescript
+constructor(private node: N) {}
+```
+
+### addListener
+
+```typescript
+public addListener(
+    eventName: string,
+    callback: EventListenerOrEventListenerObject,
+    options?: AddEventListenerOptions | boolean,
+  ): void {
+```
+
+Allows for registering a listener for a specific event on the wrapped node.
+
+Listeners added this way can be removed using the `destroy` method.
+
+### addListenerTo
+
+```typescript
+public addListenerTo(
+  target: SelectorCallback | string,
+  eventName: string,
+  callback: EventListenerOrEventListenerObject,
+  options?: AddEventListenerOptions | boolean,
+  required: boolean = true,
+) {
+```
+
+This method allows for adding a listener to a descendant of the injected node.
+
+Be careful, though, because using this method makes your wraplet **impure**:
+it will no longer directly access its own node only.
+
+Using it is generally not recommended, but it may make migration from the vanilla JS or jQuery easier, as an
+intermediary step in the transition.
+
+### destroy
+
+```typescript
+public destroy(): void {
+```
+
+Removes all listeners added using the `addListener` method.
+
+## Relation to the `AbstractWraplet` and `AbstractDependentWraplet` classes
+
+Both `AbstractWraplet` and `AbstractDependentWraplet` have a `nodeManager` protected property with
+a `NodeManager` instance available. This instance is wired up to the implementation of the `Wraplet API`
+of these classes, so it gets automatically destroyed when the wraplet extending one of these classes is destroyed.
+
+## Examples
+
+import BrowserOnly from "@docusaurus/BrowserOnly";
+
+### Managed listeners
+
+<BrowserOnly>
+    {() => {
+        const Example = require("@site/src/components/Example").default;
+        const MonacoEditor = require("@site/src/components/MonacoEditor").default;
+
+        return (
+            <Example style="small" loadComments={false}>
+                <h4>HTML</h4>
+                <MonacoEditor contentUrl="/examples/node-manager/html.htm" language="html" height="40px" />
+                <h4>TypeScript</h4>
+                <MonacoEditor contentUrl="/examples/node-manager/typescript.txt" language="typescript" height="480px" />
+            </Example>
+        );
+    }}
+</BrowserOnly>

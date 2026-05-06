@@ -1,0 +1,10 @@
+.container,
+.container > .item {
+    border: 1px solid gray;
+    padding: 3px;
+    margin-bottom: 3px;
+}
+
+.container > .item:last-child {
+    margin-bottom: 0;
+}

@@ -1,0 +1,24 @@
+---
+id: recipes-tabs
+title: Tabs
+slug: /recipes/tabs
+sidebar_position: 1
+---
+
+import BrowserOnly from "@docusaurus/BrowserOnly";
+
+<BrowserOnly>
+    {() => {
+        const Example = require("@site/src/components/Example").default;
+        const MonacoEditor = require("@site/src/components/MonacoEditor").default;
+
+        return (
+            <Example loadComments={false}>
+                <h4>HTML</h4>
+                <MonacoEditor contentUrl="/examples/recipes/tabs/html.htm" language="html" height="500px" />
+                <h4>TypeScript</h4>
+                <MonacoEditor contentUrl="/examples/recipes/tabs/typescript.txt" language="typescript" height="620px" />
+            </Example>
+        );
+    }}
+</BrowserOnly>

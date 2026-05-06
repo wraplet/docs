@@ -1,0 +1,34 @@
+<!--
+  To make examples look better, we use Bootstrap.
+
+  Tabs are matched with their panels through the "data-js-tabs--target"
+  attribute on the button and the "data-js-tabs--panel-id" attribute on
+  the panel. They are decoupled from DOM order.
+-->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+<div class="container">
+    <div data-js-tabs>
+        <ul class="nav nav-tabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button data-js-tabs__button data-js-tabs--target="general" type="button" class="nav-link active">General</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button data-js-tabs__button data-js-tabs--target="profile" type="button" class="nav-link">Profile</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button data-js-tabs__button data-js-tabs--target="contact" type="button" class="nav-link">Contact</button>
+            </li>
+        </ul>
+        <div class="tab-content border border-top-0 p-3">
+            <div data-js-tabs__panel data-js-tabs--panel-id="general" class="tab-pane active">
+                <p>General information goes here.</p>
+            </div>
+            <div data-js-tabs__panel data-js-tabs--panel-id="profile" class="tab-pane d-none">
+                <p>Profile content goes here.</p>
+            </div>
+            <div data-js-tabs__panel data-js-tabs--panel-id="contact" class="tab-pane d-none">
+                <p>Contact content goes here.</p>
+            </div>
+        </div>
+    </div>
+</div>

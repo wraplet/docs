@@ -1,0 +1,31 @@
+.tabs-nav {
+  list-style: none;
+  padding: 0;
+  display: flex;
+}
+
+.tabs-nav li {
+  margin-right: 10px;
+}
+
+.tabs-nav a {
+  text-decoration: none;
+  padding: 8px 12px;
+  display: block;
+  border: 1px solid #ccc;
+}
+
+.tabs-nav a.active {
+  background: #eee;
+}
+
+.tab-panel {
+  display: none;
+  border: 1px solid #ccc;
+  padding: 10px;
+  margin-top: 5px;
+}
+
+.tab-panel.active {
+  display: block;
+}

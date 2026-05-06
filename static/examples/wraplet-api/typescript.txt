@@ -1,0 +1,35 @@
+import {
+    type Wraplet,
+    type WrapletApi,
+    WrapletSymbol,
+    createWrapletApi,
+} from "wraplet";
+
+class TestWrapletClass implements Wraplet {
+  [WrapletSymbol]: true = true;
+  public wraplet: WrapletApi;
+
+  constructor(private node: HTMLElement) {
+    // `createWrapletApi` is a helper function making it
+    // very easy to create the Wraplet API for your class
+    // and to hook into the Wraplet API's lifecycle.
+    this.wraplet = createWrapletApi({
+      node: node,
+      wraplet: this,
+      initializeCallback: this.onInitialize.bind(this),
+      destroyCallback: this.onDestroy.bind(this),
+    });
+  }
+
+  private async onInitialize() {
+    this.node.innerHTML = "Hello World!";
+  }
+
+  private async onDestroy() {}
+}
+
+const element: HTMLElement = document.querySelector("[data-js-example]");
+
+const instance = new TestWrapletClass(element);
+
+await instance.wraplet.initialize();

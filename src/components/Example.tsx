@@ -123,6 +123,7 @@ export default class Example extends React.Component<ExampleProps, ExampleState>
       this.lastHeartbeat = Date.now();
     }
   };
+  private visibilityListener: (() => void) | undefined;
 
   private protectFromInfiniteLoop() {
     if (this.intervalId) {
@@ -131,11 +132,28 @@ export default class Example extends React.Component<ExampleProps, ExampleState>
     if (this.messageListener) {
       window.removeEventListener('message', this.messageListener);
     }
+    if (this.visibilityListener) {
+      document.removeEventListener('visibilitychange', this.visibilityListener);
+    }
 
     window.addEventListener('message', this.messageListener);
 
+    // When the tab becomes visible again, reset the heartbeat so we don't
+    // immediately treat the preview as "frozen" just because the browser
+    // throttled timers in the background.
+    this.visibilityListener = () => {
+      if (!document.hidden) {
+        this.lastHeartbeat = Date.now();
+      }
+    };
+    document.addEventListener('visibilitychange', this.visibilityListener);
+
     let replacing: boolean = false;
     this.intervalId = setInterval(async () => {
+      // Don't try to detect a frozen preview while the tab is in the background:
+      // the iframe's heartbeat is throttled too, so any decision based on
+      // `lastHeartbeat` would be wrong.
+      if (document.hidden) return;
       if (replacing) return;
       if ((Date.now() - this.lastHeartbeat) <= 3000) return;
       replacing = true;

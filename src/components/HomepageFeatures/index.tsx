@@ -55,11 +55,59 @@ const FeatureList: FeatureItem[] = [
         </>
       ),
     },
+    {
+      title: 'Small footprint',
+      Svg: null,
+      description: (
+        <>
+            <p>
+                Just ~5&nbsp;KB gzipped.
+            </p>
+            <p>
+                Wraplet stays out of your way and your bundle. It adds structure to your frontend
+                without dragging in a heavy runtime, making it a safe choice for libraries, widgets,
+                and performance-sensitive pages.
+            </p>
+        </>
+      ),
+    },
+    {
+      title: 'Readable code',
+      Svg: null,
+      description: (
+        <>
+            <p>
+                Components that read like the UI they describe.
+            </p>
+            <p>
+                Wraplets map directly to DOM elements and declare their children and dependencies
+                explicitly, so each class tells a clear story of what it owns, what it needs,
+                and what it does.
+            </p>
+        </>
+      ),
+    },
+    {
+      title: 'Easy to understand by AI',
+      Svg: null,
+      description: (
+        <>
+            <p>
+                A small, explicit API that LLMs can reason about.
+            </p>
+            <p>
+                Clear lifecycle hooks, typed dependency maps, and conventional patterns give AI
+                assistants enough context to navigate, extend, and refactor your code with
+                confidence — not guesswork.
+            </p>
+        </>
+      ),
+    },
 ];
 
 function Feature({title, Svg, description}: FeatureItem) {
   return (
-    <div className={clsx('col col--4')}>
+    <div className={clsx('col col--4 margin-bottom--lg')}>
       {Svg && (
         <div className="text--center">
           <Svg className={styles.featureSvg} role="img" />

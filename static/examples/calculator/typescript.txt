@@ -84,7 +84,7 @@ class Calculate extends AbstractWraplet {
 const map = {
 
     numbers: {
-        selector: "[data-js-calculator-number]",
+        selector: "[data-js-calculator__number]",
         Class: Number,
         required: true,
         // We assume multiple number fields. This way we will be able to add more fields to the HTML and they will
@@ -93,14 +93,14 @@ const map = {
     },
 
     result: {
-        selector: "[data-js-calculator-result]",
+        selector: "[data-js-calculator__result]",
         Class: Result,
         required: true,
         multiple: false,
     },
 
     calculate: {
-        selector: "[data-js-calculator-calculate]",
+        selector: "[data-js-calculator__calculate]",
         Class: Calculate,
         required: true,
         multiple: false,

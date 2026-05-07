@@ -66,8 +66,7 @@ export default function Home(): ReactNode {
                                   <h4>TypeScript</h4>
                                   <MonacoEditor contentUrl="/examples/calculator/typescript.txt" language="typescript" stripComments={true} />
                                   <div className="help-text">
-                                      <p>After clicking the "Open in modal" button, the preview will be updated with the content from the
-                                         editors above, and displayed in a modal.</p>
+                                      <p>Preview will be updated instantly</p>
                                   </div>
                               </Example>
                           </div>

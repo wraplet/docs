@@ -21,9 +21,14 @@ function HomepageHeader() {
         <p className="hero__subtitle">{siteConfig.tagline}</p>
         <div className={styles.buttons}>
           <Link
-            className="button button--secondary button--lg"
+            className="button button--secondary button--lg margin-right--lg"
             to="/docs/getting-started/what-is-wraplet/introduction">
             Introduction️
+          </Link>
+          <Link
+            className="button button--secondary button--lg"
+            to="/docs/getting-started/technical-overview">
+            Technical Overview
           </Link>
         </div>
       </div>
@@ -39,6 +44,11 @@ export default function Home(): ReactNode {
       description="`exhibitionjs` is a library for showcasing your JS/TS/HTML/CSS code snippets with live previews. It leverages Monaco Editor for code editing and provides a seamless way to integrate interactive code examples into your web pages.">
       <HomepageHeader />
         <main>
+            <div className={clsx('container', "margin-top--lg")}>
+                <p>
+                    <strong>wraplet</strong> is a small JavaScript/TypeScript framework for projects that work directly with the actual DOM (server-rendered apps, jQuery legacy, multipage sites, plain HTML, libraries shipping DOM components, etc.).
+                </p>
+            </div>
           <HomepageFeatures />
           <div className={clsx('container', 'homepage-demo')}>
               <h2>Live demos</h2>

@@ -1,0 +1,119 @@
+---
+id: technical-overview
+title: Technical Overview
+slug: /getting-started/technical-overview
+sidebar_position: 7
+---
+
+## TypeScript as a first class citizen
+Most "DOM-binding" libraries treat TypeScript as a coat of paint on top of a runtime API.
+Wraplet tries to use TypeScript as the actual architecture layer – the place where you express what a component is,
+what it depends on, and what shape those dependencies have. The runtime then derives behavior from that.
+
+The component is a generic class parameterized by the wrapped DOM node
+In the simplest case, the type describes what type of node is wrapped by the wraplet:
+
+```typescript
+import { AbstractWraplet } from "wraplet";
+
+class Button extends AbstractWraplet<HTMLButtonElement> {
+  protected async onInitialize() {
+    // `this.node` is HTMLButtonElement, not Element, not unknown.
+    this.node.disabled = false;
+
+    this.nodeManager.addListener("click", (e) => {
+      // `e` is properly typed as MouseEvent.
+    });
+  }
+}
+```
+
+But the real fun begins when we introduce dependencies with the `AbstractDependentWraplet`.
+
+## The dependency map is the type
+
+A wraplet that has children declares them through a plain object that is also a literal type:
+
+```typescript
+import {
+  AbstractDependentWraplet,
+  type WrapletDependencyMap,
+  type DependencyManager,
+} from "wraplet";
+
+const map = {
+  submit: {
+    selector: "[data-js-form__submit]",
+    Class: SubmitButton,
+    required: true,
+    multiple: false,
+  },
+  fields: {
+    selector: "[data-js-form__field]",
+    Class: Field,
+    required: true,
+    multiple: true,
+  },
+  errorBox: {
+    selector: "[data-js-form__error]",
+    Class: ErrorBox,
+    required: false,
+    multiple: false,
+  },
+} satisfies WrapletDependencyMap;
+
+class Form extends AbstractDependentWraplet<HTMLFormElement, typeof map> {
+  protected async onInitialize() {
+    this.d.submit;    // SubmitButton          (required + single)
+    this.d.fields;    // WrapletSet<Field>     (required + multiple)
+    this.d.errorBox;  // ErrorBox | null       (optional + single)
+  }
+}
+```
+
+A few things are worth highlighting from a TS perspective:
+
+`satisfies WrapletDependencyMap` keeps the literal types (concrete Class references, concrete required/multiple booleans)
+while still validating the object against the framework's contract.
+
+`typeof map` is then passed as a generic parameter to AbstractDependentWraplet, so the framework can compute the type
+of `this.d` per-key:
+
+- `required: true, multiple: false` - `T`
+- `required: false, multiple: false` - `T | null`
+- `required: true, multiple: true` - `WrapletSet<T>`
+- `required: false, multiple: true` - `WrapletSet<T>` (possibly empty)
+
+Renaming a key in the map updates the type of `this.d.<key>` everywhere. Renaming a child wraplet class propagates
+through the parent's type. "Find usages" actually finds usages.
+
+The dependency map effectively becomes a typed schema of your component tree. The runtime DependencyManager
+queries the DOM, instantiates the right classes, and hands them back to you typed exactly as the map describes.
+
+## Async lifecycle with typed extension points
+
+onInitialize and onDestroy are well-defined hooks; listeners and child wraplets are tied to that lifecycle,
+so cleanup is automatic. Lifecycle listeners on dependencies are also typed to the dependency they are attached to:
+
+```typescript
+dm.addDependencyInitializedListener("fields", async (field) => {
+  // `field` is `Field`, inferred from the map key "fields".
+});
+```
+
+## Custom injectors - typed too
+If for some reason a child shouldn't receive its own DOM node directly (e.g., you want to wrap it in something),
+you can declare a custom injector on a dependency. The injector's callback is typed against the wraplet's expected constructor input, so a mismatch is a compile error rather than a runtime surprise.
+
+## What this enables practically
+- Refactoring with confidence: changing the structure of a component (adding/removing a child, switching from single
+  to multiple, making something optional) is a typed change. The compiler walks you through the consequences.
+- Encapsulation by types, not by convention: parents only see the public methods of their children. There's no implicit
+  "reach into the inner DOM of my child" – you'd have to add a public method on the child wraplet, which is exactly what
+  you want.
+- Tests are just new MyWraplet(node): no framework runtime to boot, no JSX renderer, no JSDOM gymnastics beyond having
+  a node. Types make sure the test is constructing the component correctly.
+
+## Next step
+
+Read about [Core concepts](/docs/category/core-concepts).

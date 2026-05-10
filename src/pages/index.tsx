@@ -41,7 +41,7 @@ export default function Home(): ReactNode {
   return (
     <Layout
       title={`${siteConfig.title}`}
-      description="`exhibitionjs` is a library for showcasing your JS/TS/HTML/CSS code snippets with live previews. It leverages Monaco Editor for code editing and provides a seamless way to integrate interactive code examples into your web pages.">
+      description="Wraplet is a small TypeScript framework for building lifecycle-aware, type-safe components on top of real DOM – ideal for server-rendered apps, jQuery migrations, multipage sites, and JS/TS libraries.">
       <HomepageHeader />
         <main>
             <div className={clsx('container', "margin-top--lg")}>

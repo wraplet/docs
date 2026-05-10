@@ -141,7 +141,6 @@ const config: Config = {
     mermaid: true,
   },
   themes: ['@docusaurus/theme-mermaid'],
-  scripts: [{src: 'https://plausible.io/js/script.js', defer: true, 'data-domain': 'wraplet.dev'}],
 };
 
 export default config;

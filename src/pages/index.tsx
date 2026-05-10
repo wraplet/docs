@@ -21,7 +21,7 @@ function HomepageHeader() {
         <p className="hero__subtitle">{siteConfig.tagline}</p>
         <div className={styles.buttons}>
           <Link
-            className="button button--secondary button--lg margin-right--lg"
+            className="button button--secondary button--lg"
             to="/docs/getting-started/what-is-wraplet/introduction">
             Introduction️
           </Link>

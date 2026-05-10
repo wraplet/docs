@@ -22,6 +22,15 @@
   justify-content: center;
   margin-top: 2rem;
   margin-bottom: 2rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+@media screen and (max-width: 996px) {
+  .buttons {
+    flex-direction: column;
+    align-items: stretch;
+  }
 }
 
 .funFact {

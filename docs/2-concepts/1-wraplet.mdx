@@ -5,53 +5,89 @@ slug: /concepts/wraplet
 sidebar_position: 1
 ---
 
-What defines a wraplet is the implementation of the **Wraplet** interface that consists of two properties:
-- The `[WrapletSymbol]` property,
-- The `wraplet` property that implements the `WrapletApi` interface.
+## What is a Wraplet?
 
-`WrapletApi` makes it possible to tie together lifecycles of multiple wraplets, allowing complex components to emerge.
+A **Wraplet** is the central concept of this framework – it's an object that **wraps a DOM node** and gives it
+a structured identity: a clear responsibility, an explicit lifecycle, and a small public API.
 
-```typescript
-interface Wraplet {
-  [WrapletSymbol]: true;
-  wraplet: WrapletApi;
-}
-````
+You can think of a wraplet as a typed, lifecycle-aware bridge between a real element in the document and
+the JavaScript/TypeScript logic that drives it.
 
-```typescript
-interface WrapletApi {
-  [WrapletApiSymbol]: true;
+## What makes an object a Wraplet?
 
-  status: Status;
+Technically, anything that implements the `Wraplet` interface is a wraplet. The interface is intentionally minimal
+and consists of just two properties:
 
-  destroy(): Promise<void>;
+- `[WrapletSymbol]` – a marker property set to `true`, used to reliably distinguish wraplets from plain objects,
+- `wraplet` – an object implementing the `WrapletApi` interface, which exposes the wraplet's lifecycle.
 
-  initialize(): Promise<void>;
+The `WrapletApi` is what allows wraplets to be **composed**: because every wraplet exposes the same lifecycle contract
+(`initialize`, `destroy`, `status`, `addDestroyListener`), parent wraplets can manage their children uniformly,
+regardless of what those children actually do internally.
 
-  addDestroyListener(callback: DestroyListener): void;
-}
-```
+In other words: a wraplet is **not defined by extending a particular class** or by being attached to a node in
+a particular way. It's defined by the contract it implements. Anything that fulfills the `Wraplet` interface
+participates in the wraplet ecosystem.
 
-## Examples
+You can find the technical reference of the interface [HERE](/docs/reference/wraplet).
 
-import BrowserOnly from "@docusaurus/BrowserOnly";
+## What a Wraplet represents
 
-### A non-dependent wraplet
+A wraplet typically represents **one meaningful unit of behavior** connected to a DOM node, for example:
 
-In this example we'll create a simple custom class implementing the `Wraplet` interface without extending any other class.
+- a button,
+- an input field,
+- a form,
+- a tabs widget,
+- a wrapper around a third-party component,
+- a coordinator for a group of smaller wraplets.
 
-<BrowserOnly>
-    {() => {
-        const Example = require("@site/src/components/Example").default;
-        const MonacoEditor = require("@site/src/components/MonacoEditor").default;
+The DOM node is the place where the wraplet "lives", but the node alone is not the reason the wraplet exists.
+The reason is the **responsibility** the wraplet encapsulates around that node.
 
-        return (
-            <Example style="small" loadComments={false}>
-                <h4>HTML</h4>
-                <MonacoEditor contentUrl="/examples/wraplet-api/html.htm" language="html" height="30px" />
-                <h4>TypeScript</h4>
-                <MonacoEditor contentUrl="/examples/wraplet-api/typescript.txt" language="typescript" height="620px" />
-            </Example>
-        );
-    }}
-</BrowserOnly>
+For more on how to think about modeling your interface in terms of wraplets, see
+[How to think in Wraplet](/docs/how-to-think-in-wraplet).
+
+## Why does this contract matter?
+
+Because every wraplet shares the same minimal API, the framework can offer a number of guarantees:
+
+- **Composability** – any wraplet can become a dependency of another wraplet, and the parent can manage its
+  children's lifecycle without knowing their internal details.
+- **Predictable lifecycle** – every wraplet can be initialized and destroyed in a consistent, asynchronous way.
+  See [Lifecycle](/docs/concepts/lifecycle) for details.
+- **Safe cleanup** – resources owned by a wraplet (event listeners, timers, child wraplets, external widgets)
+  can be released deterministically when the wraplet is destroyed.
+- **Encapsulation** – a wraplet exposes a small, meaningful public API instead of leaking its internal DOM structure
+  to the outside world.
+
+## How do you create a Wraplet?
+
+You have two options:
+
+1. **Implement the `Wraplet` interface manually.** This gives you full control and is sometimes useful for very
+   specialized cases or for adapting external objects to the wraplet ecosystem.
+2. **Extend one of the abstract base classes** provided by the framework:
+    - [`AbstractWraplet`](/docs/concepts/abstract-wraplet) – for wraplets that wrap a single DOM node and don't need
+      child wraplets.
+    - [`AbstractDependentWraplet`](/docs/concepts/abstract-wraplet#abstractdependentwraplet) – for wraplets that
+      coordinate child wraplets through a [DependencyManager](/docs/concepts/dependency-manager).
+
+In most real-world code you'll extend one of the abstract classes, because they remove a lot of boilerplate and
+wire useful features (like the [NodeManager](/docs/concepts/node-manager) and lifecycle hooks) for you automatically.
+
+## Wraplet vs the DOM node
+
+It's important to keep two things separate in your mind:
+
+- The **DOM node** is part of the document. It's owned by the browser and may be created or removed at any time.
+- The **wraplet** is a JavaScript/TypeScript object that wraps that node, gives it behavior, and manages
+  the resources tied to it.
+
+A wraplet can be destroyed independently of its node (cleaning up listeners and child wraplets), and a node may
+exist without ever being wrapped. The framework's job is to keep the relationship between the two well-defined and
+predictable.
+
+## Reference
+
+- [Wraplet (with examples)](/docs/reference/wraplet)

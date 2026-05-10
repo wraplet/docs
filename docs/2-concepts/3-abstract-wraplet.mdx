@@ -5,31 +5,93 @@ slug: /concepts/abstract-wraplet
 sidebar_position: 3
 ---
 
-`AbstractWraplet` and `AbstractDependentWraplet` are thin base classes implementing the `Wraplet` interface.
+The framework ships two thin base classes that already implement the [`Wraplet`](/docs/concepts/wraplet) interface:
 
-By extending one of them, you can save a few lines of code, compared to implementing the `Wraplet` interface manually.
+- `AbstractWraplet` – for wraplets that wrap a single DOM node,
+- `AbstractDependentWraplet` – for wraplets that, on top of wrapping a node, coordinate child wraplets through
+  a [DependencyManager](/docs/concepts/dependency-manager).
+
+You don't have to use them. You can implement the `Wraplet` interface from scratch whenever you need full control.
+But in everyday code these classes save a lot of boilerplate and wire useful features for you automatically.
+
+## Why use a base class at all?
+
+Implementing `Wraplet` manually means taking care of a few recurring concerns yourself:
+
+- exposing the `WrapletApi` (with `initialize`, `destroy`, `status`, etc.),
+- making sure `destroy` is idempotent and reflects state correctly,
+- managing event listeners on the wrapped node and cleaning them up on destroy,
+- validating that the node passed to the constructor is actually the kind of node your wraplet expects.
+
+The abstract classes implement all of that for you. What's left for you is the part that's actually unique
+to your component: **what happens during initialization, what happens during destruction, and what API you expose
+to the outside world.**
 
 ## AbstractWraplet
 
-`AbstractWraplet` is a simple wrapper over a document's node provisioned with some protected methods
-that allow to run stuff during different stages of the wraplet's lifecycle.
+`AbstractWraplet` is the simpler of the two. It's a wrapper over a single DOM node, with hooks for the wraplet's
+lifecycle and a built-in [NodeManager](/docs/concepts/node-manager) for safe listener management.
 
-It also provides a few static helpers for creating instances of classes extending the `AbstractWraplet`.
+A typical subclass looks roughly like this:
+
+```typescript
+class MyButton extends AbstractWraplet<HTMLButtonElement> {
+  protected async onInitialize() {
+    this.nodeManager.addListener("click", () => {
+      // ...
+    });
+  }
+
+  protected async onDestroy() {
+    // optional custom cleanup
+  }
+}
+```
+
+What you get out of the box:
+
+- **A typed wrapped node** – `this.node` is typed exactly to the generic parameter you pass to `AbstractWraplet` (e.g. `HTMLButtonElement`), so you don't have to cast or guard it everywhere.
+- **Lifecycle hooks** – `onInitialize` and `onDestroy` are called at the right moments by the `WrapletApi`. See [Lifecycle](/docs/concepts/lifecycle) for the full picture.
+- **A `NodeManager`** – exposed as `this.nodeManager`, it owns event listeners on the node and disposes of them automatically when the wraplet is destroyed.
+- **Runtime node validation** – by overriding `supportedNodeTypes()`, you declare which kinds of nodes are valid for this wraplet. If something else is passed in, the constructor throws immediately, so misuse is caught early.
+- **Static factory helpers** – `createWraplets` and `createAndInitializeWraplets` let you instantiate
+  (and optionally initialize) a wraplet for every element matching a given attribute under a `ParentNode`.
+  They also infer the return type from the subclass, so calling code stays concise and well-typed.
+
+`AbstractWraplet` does **not** know anything about child wraplets. If your component has internal structure with multiple wraplets coordinated under one root node, reach for instead.
 
 ## AbstractDependentWraplet
+`AbstractDependentWraplet` is built for wraplets that aren't leaves – wraplets that have **children**.
+It extends `AbstractWraplet`, so everything described above still applies: typed node, lifecycle hooks, `NodeManager`, node validation. On top of that, it integrates with a [DependencyManager](/docs/concepts/dependency-manager).
+The key differences are:
+- **The constructor takes a `DependencyManager`, not a node.`DependencyManager`** The node is wrapped indirectly through the , which is responsible for finding child nodes in the DOM and instantiating their wraplets based on a [dependency map](/docs/reference/dependency-manager/dependency-map).
+- **Children are accessible as `this.d`.** Each key in the dependency map becomes a typed property on `this.d`, with the type derived from the map (single vs. multiple, required vs. optional). Renaming a key in the map updates the type everywhere it's used.
+- **Children's lifecycle is wired to the parent's lifecycle.** When the parent initializes, all dependencies initialize. When the parent is destroyed, all dependencies are destroyed. You don't have to orchestrate this by hand.
+- **Dedicated factory helpers** – `createDependentWraplets` and `createAndInitializeDependentWraplets` are the counterparts of the helpers from `AbstractWraplet`, adapted to the dependency-aware constructor signature. The original `createWraplets` / `createAndInitializeWraplets` are intentionally disabled here, because they would not produce a valid `AbstractDependentWraplet` instance.
 
-`AbstractDependentWraplet` is a wrapper over a `DependencyManager` that wraps a document's node. So `AbstractDependentWraplet`
-wraps node indirectly.
-
-It extends `AbstractWraplet` and provides some of the same helpers, but it's made to work specifically with `DependencyManager`.
+If you've read the [Technical overview](/docs/getting-started/technical-overview), `AbstractDependentWraplet` is where the "dependency map is the type" idea actually meets the runtime.
 
 ## When to use AbstractWraplet vs AbstractDependentWraplet
+A short rule of thumb:
+- Use **`AbstractWraplet`** when:
+    - the wraplet is a **leaf** in your component tree,
+    - it doesn't depend on other wraplets,
+    - it's a small, self-contained piece of behavior – a button, an input, a value display, a wrapper around a single third-party widget.
 
-- When your wraplet is a `leaf` – it doesn't depend on other wraplets, extend `AbstractWraplet`.
-- When you need to create a wraplet that depends on other wraplets, you should use `AbstractDependentWraplet`.
+- Use **`AbstractDependentWraplet`** when:
+    - the wraplet has **internal structure** made of other wraplets,
+    - you want to declaratively describe which children it has,
+    - you want children's lifecycle to be tied to the parent's,
+    - you want the parent to interact with children through their public APIs, not by reaching into raw DOM.
+
+You can also mix both freely in the same project: a `AbstractDependentWraplet` parent can have children that extend `AbstractWraplet`, children that extend `AbstractDependentWraplet`, or even children that implement `Wraplet` manually. From the parent's point of view, all of them are just wraplets.
+
+## Do I have to use these classes?
+No. They are an optional convenience layer.
+If your use case really requires it – for example, when adapting an external object to the wraplet ecosystem, or when you need a non-standard lifecycle – you can implement the interface directly. As long as the contract is fulfilled, the rest of the framework will treat your object as any other wraplet. `Wraplet`
+For most components, however, extending or is the most ergonomic path: less code to write, fewer mistakes to make, and consistent behavior across the codebase. `AbstractWraplet``AbstractDependentWraplet`
 
 ## Reference
-
 - [AbstractWraplet](/docs/reference/abstract-wraplet)
 - [AbstractDependentWraplet](/docs/reference/abstract-dependent-wraplet)
 - [Wraplet](/docs/reference/wraplet)

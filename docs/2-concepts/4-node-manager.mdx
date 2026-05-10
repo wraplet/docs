@@ -4,17 +4,83 @@ title: NodeManager
 slug: /concepts/node-manager
 sidebar_position: 4
 ---
+
 ## What is a NodeManager?
 
-NodeManager is an object provided by the wraplet abstract classes
-to manage the node's listeners.
+`NodeManager` is a small helper object whose only job is to **own the event listeners attached to a wraplet's
+node and clean them up automatically when the wraplet is destroyed**.
 
-It's wired to the wraplet's lifecycle, which means that
-it automatically removes listeners from the node when the wraplet is destroyed.
+You don't usually create a `NodeManager` yourself. Both [`AbstractWraplet`](/docs/concepts/abstract-wraplet)
+and [`AbstractDependentWraplet`](/docs/concepts/abstract-wraplet#abstractdependentwraplet) instantiate one for
+you and expose it as a protected `this.nodeManager` property. From inside your wraplet you simply use it
+to register listeners.
 
-That's why it's much better to use it instead of attaching listeners
-to the node directly.
+## The problem it solves
+
+Adding event listeners directly to a DOM node is easy. **Removing them at the right moment is not.**
+
+In a long-lived or dynamically updated UI, forgotten listeners are a classic source of subtle bugs:
+
+- duplicated reactions when a component is re-attached,
+- memory leaks when nodes are removed but listeners keep references to closures,
+- "ghost" handlers that fire on stale state after a feature has been torn down.
+
+The traditional fix – calling `removeEventListener` with the exact same callback reference – is correct in theory
+and brittle in practice. You have to keep references to every callback, mirror them somewhere, and remember to
+walk through all of them during cleanup. A single missed listener is a leak.
+
+## How NodeManager solves it
+
+`NodeManager` shifts the bookkeeping away from your code. When you register a listener through it, the manager:
+
+1. attaches the listener to the node,
+2. records what was attached and how,
+3. removes everything in one go when its `destroy()` is called.
+
+Because the abstract wraplet classes wire the manager's `destroy()` into the wraplet's own destruction path,
+this happens automatically – you don't need to remember to do it. As long as a listener is registered through
+`this.nodeManager`, the framework guarantees it will be removed when the wraplet is destroyed.
+
+This is one of the main reasons to use the abstract base classes in the first place: **safe-by-default lifecycle
+for event listeners, with no extra ceremony**.
+
+## Typical use
+
+A typical use looks like this:
+
+```typescript
+class MyButton extends AbstractWraplet<HTMLButtonElement> {
+  protected async onInitialize() {
+    this.nodeManager.addListener("click", () => {
+      // ...
+    });
+  }
+}
+```
+
+When `MyButton` is destroyed (directly, or because a parent wraplet was destroyed), the click listener is removed automatically. There is no `removeEventListener` call to forget.
+`NodeManager` also offers `addListenerTo`, which lets you attach a managed listener to a **descendant** of the wrapped node (selected via a CSS selector or a callback). It's convenient, but it should be used with caution – see the next section.
+
+## Pure vs impure wraplets
+`addListener` keeps your wraplet **pure**: it only attaches behavior to its own node. This matches the wraplet mental model described in [How to think in Wraplet](/docs/how-to-think-in-wraplet) – each wraplet is responsible for one well-defined piece of the DOM and exposes a small public API.
+`addListenerTo` is more powerful but makes your wraplet **impure**: it reaches into other nodes that don't belong to it directly. This is occasionally useful – especially when migrating jQuery-style code in stages – but as a long-term design it tends to undo a lot of what wraplets give you. The cleaner alternative is almost always to give that descendant its own wraplet and depend on it through a [DependencyManager](/docs/concepts/dependency-manager).
+See also [Terminology](/docs/terminology) for the formal definitions of "pure" and "impure" wraplets.
+
+## Why not just call `addEventListener` directly?
+You technically can. Nothing prevents you from writing `this.node.addEventListener(...)` inside a wraplet.
+The trade-off is that you take the cleanup back on yourself. You'd need to:
+- store every registered callback,
+- override `onDestroy` to call `removeEventListener` for each of them,
+- keep this list in sync as the component evolves.
+
+For anything beyond a one-off experiment, is strictly the better default. It expresses the same intent in less code and removes an entire class of cleanup bugs. `nodeManager.addListener`
+
+## Relation to the wraplet lifecycle
+The manager's lifecycle is intentionally tied to the wraplet's lifecycle:
+- listeners are added during or after [initialization](/docs/concepts/lifecycle),
+- they are torn down as part of destruction.
+
+This is one of the building blocks behind the broader guarantee Wraplet offers: **anything a wraplet owns – its listeners, its child wraplets, its external resources – goes away together with the wraplet itself.**
 
 ## Reference
-
-- [NodeManager](/docs/reference/node-manager)
+- [NodeManager (with examples)](/docs/reference/node-manager)

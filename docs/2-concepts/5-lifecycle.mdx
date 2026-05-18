@@ -112,6 +112,17 @@ Every wraplet exposes a read-only `status` object on its `WrapletApi`. It tells 
 
 This is useful when external code wants to coordinate with a wraplet whose lifecycle isn't fully under its control – for example, when reacting to an event that may arrive _before_ the wraplet is initialized, or _after_ it has already been destroyed.
 
+## Idempotency and safety
+Lifecycle methods are designed to behave safely in real-world conditions:
+- Calling `wraplet.initialize()` on an already-initialized wraplet is safe – it won't run `onInitialize` twice.
+- Calling `wraplet.destroy()` on an already-destroyed wraplet is safe – it won't run `onDestroy` twice.
+- `wraplet.initialize()` and `wraplet.destroy()` methods are **memoized**. It means that you don't need to check
+  if they are already getting initialized or destroyed. If you call them during an already running initialization
+  or destruction process, you will get the promise that is currently being resolved.
+- Errors thrown inside `onInitialize` or `onDestroy` of a single dependency don't prevent the rest of its siblings from going through the same phase (in the default `DDM` implementation).
+
+That doesn't mean you should ignore errors – you should still handle and log them – but it does mean that one broken child won't cascade into a stuck or partially-destroyed component tree.
+
 ## A practical mental model
 When designing a wraplet, walk through the three phases explicitly:
 1. **What does construction need?** Just the node (or the `DependencyManager`). No I/O.

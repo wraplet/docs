@@ -13,6 +13,7 @@ export interface ExampleProps {
   style?: 'small';
   loadComments?: boolean;
   children?: ReactNode;
+  previewHeight?: string;
 }
 
 export interface ExampleState {
@@ -306,6 +307,7 @@ export default class Example extends React.Component<ExampleProps, ExampleState>
     const { title, children } = this.props;
     const { stripComments } = this.state;
     const processedChildren = this.processChildren(children);
+    const previewHeight = this.props.previewHeight || '100%';
 
     return this.renderWithContext(processedChildren, (
       <>
@@ -321,7 +323,7 @@ export default class Example extends React.Component<ExampleProps, ExampleState>
               sandbox="allow-scripts"
               data-js-exhibition-preview
               className="w-100 rounded"
-              style={{display: "block", minHeight: "200px", height: "calc(100% - 40px)", width: "100%"}}
+              style={{display: "block", height: previewHeight, width: "100%"}}
             ></iframe>
           </div>
         </div>
@@ -414,7 +416,6 @@ export default class Example extends React.Component<ExampleProps, ExampleState>
               }
               .example-small-preview {
                 min-width: 0;
-                min-height: 200px;
                 background: #fff;
                 border-left: 20px solid var(--ifm-color-emphasis-200);
               }

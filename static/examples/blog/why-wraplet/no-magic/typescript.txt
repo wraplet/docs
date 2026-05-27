@@ -1,0 +1,25 @@
+import { AbstractWraplet } from "wraplet";
+
+// A single class wrapping a real DOM node.
+// No virtual DOM, no compiler, no hidden reactivity.
+// What you read here is exactly what runs in the browser.
+class Clicker extends AbstractWraplet<HTMLElement> {
+    protected override async onInitialize() {
+        // The `nodeManager` is a small helper that ties listeners
+        // to the wraplet lifecycle. They get cleaned up automatically
+        // when the wraplet is destroyed - no leaks, no surprises.
+        this.nodeManager.addListener("click", () => {
+            if (!this.node.style.color) {
+                this.node.style.color = "red";
+            } else {
+                this.node.style.color = "";
+            }
+        });
+    }
+}
+
+const element: HTMLElement = document.querySelector("[data-js-clicker]");
+
+const clicker = new Clicker(element);
+
+await clicker.wraplet.initialize();

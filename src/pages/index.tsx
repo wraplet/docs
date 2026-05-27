@@ -27,8 +27,8 @@ function HomepageHeader() {
           </Link>
           <Link
             className="button button--secondary button--lg"
-            to="/docs/getting-started/technical-overview">
-            Technical Overview
+            to="/blog/why-wraplet">
+            Why Wraplet?
           </Link>
         </div>
       </div>

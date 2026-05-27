@@ -29,7 +29,11 @@ class ExampleWraplet extends AbstractWraplet<HTMLElement> {
         // automatically when wraplet gets destroyed, so we don't have
         // to worry about leaks.
         this.nodeManager.addListener("click", () => {
-            this.node.style.color = "red";
+            if (!this.node.style.color) {
+                this.node.style.color = "red";
+            } else {
+                this.node.style.color = "";
+            }
         });
     }
 }

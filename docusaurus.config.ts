@@ -7,7 +7,7 @@ import type * as Preset from '@docusaurus/preset-classic';
 const config: Config = {
   title: 'Wraplet',
   tagline: 'TypeScript, OOP, and the DOM — finally in one working model.',
-  favicon: 'img/favicon.ico',
+  favicon: 'img/logo.svg',
   plugins: [
     './plugins/monaco-editor-plugin.ts',
   ],
@@ -72,7 +72,7 @@ const config: Config = {
 
   themeConfig: {
     // Replace with your project's social card
-    image: 'img/docusaurus-social-card.jpg',
+    image: 'img/social-card.jpg',
     colorMode: {
       respectPrefersColorScheme: false,
       defaultMode: "light",
@@ -80,10 +80,10 @@ const config: Config = {
     },
     navbar: {
       title: 'Wraplet',
-      //logo: {
-      //  alt: 'Wraplet Logo',
-      //  src: 'img/logo.svg',
-      //},
+      logo: {
+        alt: 'Wraplet Logo',
+        src: 'img/logo.svg',
+      },
       items: [
         {
           type: 'docSidebar',

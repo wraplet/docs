@@ -7,7 +7,7 @@ import type * as Preset from '@docusaurus/preset-classic';
 const config: Config = {
   title: 'Wraplet',
   tagline: 'TypeScript, OOP, and the DOM — finally in one working model.',
-  favicon: 'img/logo.svg',
+  favicon: 'img/favicon.svg',
   plugins: [
     './plugins/monaco-editor-plugin.ts',
   ],

@@ -1,12 +1,10 @@
 import {
     type Wraplet,
     type WrapletApi,
-    WrapletSymbol,
     createWrapletApi,
 } from "wraplet";
 
 class TestWrapletClass implements Wraplet {
-  [WrapletSymbol]: true = true;
   public wraplet: WrapletApi;
 
   constructor(private node: HTMLElement) {

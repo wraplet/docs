@@ -16,9 +16,7 @@ the JavaScript/TypeScript logic that drives it.
 ## What makes an object a Wraplet?
 
 Technically, anything that implements the `Wraplet` interface is a wraplet. The interface is intentionally minimal
-and consists of just two properties:
-
-- `[WrapletSymbol]` – a marker property set to `true`, used to reliably distinguish wraplets from plain objects,
+and consists only of a single property:
 - `wraplet` – an object implementing the `WrapletApi` interface, which exposes the wraplet's lifecycle.
 
 The `WrapletApi` is what allows wraplets to be **composed**: because every wraplet exposes the same lifecycle contract

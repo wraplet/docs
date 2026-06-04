@@ -5,15 +5,13 @@ slug: /reference/wraplet
 sidebar_position: 2
 ---
 
-What defines a wraplet is the implementation of the **Wraplet** interface that consists of two properties:
-- The `[WrapletSymbol]` property having the value `true`,
-- The `wraplet` property that implements the `WrapletApi` interface.
+What defines a wraplet is the implementation of the **Wraplet** interface that consists
+only of a `wraplet` property that implements the `WrapletApi` interface.
 
 `WrapletApi` makes it possible to tie together lifecycles of multiple wraplets, allowing complex components to emerge.
 
 ```typescript
 interface Wraplet {
-  [WrapletSymbol]: true;
   wraplet: WrapletApi;
 }
 ````

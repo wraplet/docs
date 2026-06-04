@@ -67,14 +67,14 @@ export default function Home(): ReactNode {
                                   <h4>HTML</h4>
                                   <MonacoEditor contentUrl="/examples/basics/html.htm" language="html" height="50px" />
                                   <h4>TypeScript</h4>
-                                  <MonacoEditor contentUrl="/examples/basics/typescript.txt" language="typescript" stripComments={true} />
+                                  <MonacoEditor contentUrl="/examples/basics/typescript.txt" language="typescript" />
                               </Example>
                               <Example>
                                   <h3>Wraplet with dependencies: a multi-element "Calculator" project</h3>
                                   <h4>HTML</h4>
                                   <MonacoEditor contentUrl="/examples/calculator/html.htm" language="html" height="450px" />
                                   <h4>TypeScript</h4>
-                                  <MonacoEditor contentUrl="/examples/calculator/typescript.txt" language="typescript" stripComments={true} />
+                                  <MonacoEditor contentUrl="/examples/calculator/typescript.txt" language="typescript" />
                                   <div className="help-text">
                                       <p>Preview will be updated instantly</p>
                                   </div>

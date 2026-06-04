@@ -5,60 +5,150 @@ slug: /getting-started/what-is-wraplet/core-strengths
 sidebar_position: 2
 ---
 
-Wraplet's strongest value comes from the way it structures frontend code around real interface elements.
+Wraplet's strongest value comes from the way it structures frontend code around real interface elements, without hiding the DOM behind a compiler, a virtual tree, or an invisible reactivity graph. What you write is what runs in the browser — only better organized, better typed, and safer to evolve over time.
+
+The sections below describe the qualities that, taken together, make Wraplet distinct.
 
 ## Natural mapping between code and the DOM
 
-Wraplet binds class instances to specific DOM elements and can create them automatically based on markup. That means component logic lives exactly where it runs.
+Wraplet binds class instances to specific DOM elements and can create them automatically based on markup. A wraplet is a class that *wraps* a node: the class lives in `this`, the node lives in `this.node`, and the two are bound together but remain separate. The HTML stays whatever it already was — a `<div>`, a `<strong>`, an `<input>` — and behavior is attached to it by selector.
+
+That means component logic lives exactly where it runs. There is no template language, no re-render cycle, no reconciliation step between your source code and what is on the page.
 
 Benefits:
 
-- easier adoption in existing HTML projects,
-- simpler debugging,
-- lower overhead when extending server-rendered interfaces.
+- easier adoption in existing HTML projects and server-rendered apps,
+- simpler debugging — the stack trace points at the code you actually wrote,
+- lower overhead when extending CMS templates, admin panels, or legacy frontends,
+- the same CSS rules and `querySelector` semantics as the rest of the page, with no Shadow DOM boundary to design around.
 
-## Clear component lifecycle
+## Clear, decoupled component lifecycle
 
-Wraplet provides predictable entry and exit points such as initialization and destruction hooks. This makes it easier to reason about how components start, communicate, and clean up after themselves.
+Wraplet provides predictable entry and exit points: a constructor, an `onInitialize` hook, and an `onDestroy` hook. This makes it easy to reason about how components start, communicate, and clean up after themselves.
+
+Crucially, a wraplet's lifecycle is **decoupled from the lifecycle of its DOM element**. A wraplet can wrap an element before it is attached to the DOM, so it can be fully prepared before the user ever sees it. It can also be destroyed *before* the element is removed — for example, to run teardown logic while a spinner is still displayed.
+
+That decoupling also enables **dependent asynchronous lifecycles**: initializing one wraplet can drive the initialization of its children, and the whole tree completes when every part is ready. Wraplets become self-contained units that manage their own async dependencies, instead of leaving that wiring to the caller.
 
 Benefits:
 
 - safer initialization of complex views,
-- better cleanup of resources,
-- reduced risk of state leaks and accidental coupling.
+- reliable cleanup of resources, even for components that outlive a single interaction,
+- reduced risk of state leaks and accidental coupling,
+- flexibility to prepare elements off-DOM or tear them down without removing them.
 
-## Built-in dependency system
+## Built-in declarative dependency system
 
-One of Wraplet's strongest differentiators is its dependency model between wraplets. It supports required and optional dependencies as well as single and multiple relationships.
+One of Wraplet's strongest differentiators is its dependency model between wraplets. Instead of looking children up imperatively with `querySelector` and casting them, you describe them once — declaratively — in a dependency map, and get a fully typed `this.d` object back. The map supports required and optional dependencies, as well as single and multiple relationships.
+
+A dependency map is more than a convenience layer over selectors. It describes the **internal architecture** of a wraplet: what child parts it needs, whether they are required, whether there is one instance or many, which class represents each part, and how each dependency participates in lifecycle management.
+
+The `DependencyManager` then finds the matching elements, instantiates the dependencies, and validates the structure when the wraplet comes to life. If something is wired wrong, you get immediate, actionable feedback — not a mystery `undefined` deep inside an event handler.
 
 Benefits:
 
-- less manual wiring,
-- clearer interface trees,
-- easier composition of larger modules.
+- less manual wiring and no scattered `querySelector` calls,
+- clearer interface trees — the map is a readable map of the component,
+- easier composition of larger modules,
+- early, explicit failure when the markup and the code disagree.
 
 ## TypeScript that supports architecture
 
-Wraplet uses types as a real design tool rather than a thin add-on. Typed APIs and typed dependencies help detect problems early and support safer refactoring.
+Many frameworks *support* TypeScript. Wraplet is *designed around* it. Types are a real design tool here, not a thin add-on.
+
+Because dependencies are declared in a single object literal, TypeScript infers everything else from it:
+
+- `this.d.nameInput` is a `NameInput` instance with its own methods autocompleted — not an `HTMLInputElement` you had to cast.
+- Renaming a key in the map turns every usage into a compile error, with no grep and no surprises at runtime.
+- Calling a method that does not exist on a child, or treating an `HTMLInputElement` as an `HTMLButtonElement`, fails to compile before the page ever loads.
+- No decorators, no metadata, no reflection — just plain TypeScript inference over plain object literals. What you see in the editor is what the compiler sees.
 
 Benefits:
 
-- better onboarding,
+- faster, safer onboarding,
 - fewer hidden runtime contracts,
-- more confidence during code evolution.
+- more confidence during refactoring, even across parent–child boundaries,
+- type safety that scales well into large codebases without extra annotations.
 
 ## OOP-friendly frontend model
 
-Wraplet is especially attractive for teams that prefer classes, encapsulation, and explicit responsibilities. Each wraplet can act as a self-contained unit with its own methods, state, and lifecycle.
+Wraplet is especially attractive for teams that prefer classes, encapsulation, and explicit responsibilities. Each wraplet acts as a self-contained unit with its own methods, state, and lifecycle, and exposes a small, intent-revealing public API (`getValue()`, `setError()`, `show()`, `refresh()`, …) instead of leaking internal DOM details.
+
+This makes the contract between parent and child wraplets explicit. A form wraplet, for example, does not need to know how each field stores its error node or wires its listeners — it depends on a field-like interface and lets the child decide how to honor it.
 
 This works well when:
 
 - the frontend has complex domain behavior,
 - components live longer than a simple event handler,
-- predictable structure matters across the team.
+- predictable structure matters across the team,
+- you want to refactor the markup of a child without touching every parent that uses it.
+
+## Composition without HTML gymnastics
+
+Because a wraplet *wraps* a node rather than *being* one, multiple wraplets can attach to the same element to provide different behaviors. Extending an element's behavior is as simple as adding another attribute:
+
+```html
+<div data-js-behavior1 data-js-behavior2 class="container">
+    <div class="row"></div>
+</div>
+```
+
+This lets you think about wraplets as **behaviors** that can be combined freely, rather than as elements that have to be nested into a particular hierarchy just to add another responsibility. From the wraplet's perspective, a built-in element, a custom element, and even an existing Web Component are all treated the same way — a uniform developer experience across the whole page.
+
+Benefits:
+
+- multiple behaviors per element without restructuring the HTML,
+- a consistent integration model for built-in elements, custom elements, and third-party widgets,
+- progressive enhancement that respects the existing markup.
+
+## No virtual DOM, no compiler magic
+
+Wraplet deliberately avoids the layers that widen the gap between source code and runtime in many modern frameworks:
+
+- no virtual DOM diffing or patching,
+- no hidden reactivity graph tracking reads in invisible scopes,
+- no compiler that rewrites your components into something else,
+- no file-based routers, hydration boundaries, or `"use client"` directives revolving around a shifting definition of "component".
+
+A wraplet is just a class with a lifecycle, a node, and typed dependencies. If you can read JavaScript and the DOM API, you can read — and debug — a Wraplet codebase top to bottom.
+
+This makes Wraplet code unusually friendly to readers, including the readers that increasingly review and generate code today: **LLMs**. With no invisible compiler output or runtime metadata to infer, models (and new teammates) can reason about a wraplet from the source alone, without needing to "know" how some framework's internals happen to behave this month.
+
+## Automatic listener cleanup
+
+Forgetting to remove an event listener is a classic source of memory leaks and ghost behavior in long-lived pages. Wraplet treats this as a framework concern, not a user concern.
+
+When you extend `AbstractWraplet` or `AbstractDependentWraplet`, listeners attached through `this.nodeManager.addListener(...)` are tied to the wraplet's lifecycle. When the wraplet is destroyed, the [NodeManager](/docs/concepts/node-manager) removes them automatically. You only write cleanup code for things outside the framework's reach — third-party widgets, raw timers, or external subscriptions.
+
+Benefits:
+
+- fewer leaks in long-running interfaces,
+- less boilerplate in `onDestroy`,
+- consistent cleanup behavior across the whole codebase.
 
 ## Lightweight adoption profile
 
-Wraplet is also appealing because it keeps the technology footprint lightweight. It helps organize code instead of taking over the entire application model.
+Wraplet keeps its technology footprint deliberately small. It helps organize code instead of taking over the entire application model. It does not impose a build system, a router, a state container, or a styling solution — it focuses on the fundamentals (lifecycle, dependencies, typing) and leaves the rest to the ecosystem.
 
-That makes it easier to introduce gradually, especially in existing products.
+That makes it easy to introduce gradually:
+
+- drop it into an existing server-rendered app without rewriting anything,
+- adopt it one feature at a time,
+- coexist with React, Vue, Angular, or vanilla JS already present on the page,
+- keep your stack focused on the parts that actually need a framework.
+
+
+## In short
+
+Wraplet's core strengths reinforce each other:
+
+- a natural mapping between code and the DOM,
+- a predictable lifecycle decoupled from the element's lifecycle,
+- automatic listener cleanup,
+- a declarative, typed dependency model,
+- TypeScript used as an architectural tool,
+- an OOP-friendly, composition-first design,
+- no virtual DOM and no compiler magic,
+- a lightweight, gradually adoptable footprint.
+
+The result is code that is easier to read, safer to refactor, and built to last — closer to a reliable workhorse than a flashy short-lived experiment.

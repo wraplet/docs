@@ -1,0 +1,27 @@
+// A Web Component reaches into its children with `querySelector`
+// and a manual cast. The compiler has no way to verify that the
+// selector and the cast actually agree with the markup.
+class GreeterElement extends HTMLElement {
+    private nameInput!: HTMLInputElement;
+    private submit!: HTMLButtonElement;
+    private output!: HTMLElement;
+
+    connectedCallback() {
+        this.nameInput = this.querySelector("[data-name]") as HTMLInputElement;
+        this.submit = this.querySelector("[data-submit]") as HTMLButtonElement;
+        this.output = this.querySelector("[data-output]") as HTMLElement;
+
+        this.submit.addEventListener("click", this.handleClick);
+    }
+
+    disconnectedCallback() {
+        this.submit.removeEventListener("click", this.handleClick);
+    }
+
+    private handleClick = () => {
+        const name = this.nameInput.value || "stranger";
+        this.output.textContent = `Hello, ${name}!`;
+    };
+}
+
+customElements.define("greeter-element", GreeterElement);

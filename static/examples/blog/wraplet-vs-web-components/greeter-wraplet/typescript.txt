@@ -1,0 +1,67 @@
+import {
+    AbstractWraplet,
+    AbstractDependentWraplet,
+    DDM,
+    type WrapletDependencyMap,
+} from "wraplet";
+
+// Small leaf wraplets - each one wraps a single DOM node and
+// exposes a tiny, typed API around it.
+
+class NameInput extends AbstractWraplet<HTMLInputElement> {
+    public getValue(): string {
+        return this.node.value;
+    }
+}
+
+class SubmitButton extends AbstractWraplet<HTMLButtonElement> {
+    public onClick(callback: () => void): void {
+        this.nodeManager.addListener("click", () => callback());
+    }
+}
+
+class Output extends AbstractWraplet<HTMLElement> {
+    public setText(value: string): void {
+        this.node.textContent = value;
+    }
+}
+
+// A typed, declarative dependency map.
+// `this.d.nameInput` will be a `NameInput` instance, not an
+// `HTMLInputElement` you have to cast yourself.
+const map = {
+    nameInput: {
+        selector: "[data-js-greeter__name]",
+        Class: NameInput,
+        required: true,
+        multiple: false,
+    },
+    submit: {
+        selector: "[data-js-greeter__submit]",
+        Class: SubmitButton,
+        required: true,
+        multiple: false,
+    },
+    output: {
+        selector: "[data-js-greeter__output]",
+        Class: Output,
+        required: true,
+        multiple: false,
+    },
+} satisfies WrapletDependencyMap;
+
+class Greeter extends AbstractDependentWraplet<HTMLElement, typeof map> {
+    protected override async onInitialize() {
+        // No querySelector, no casts. Renaming a key in the map
+        // immediately surfaces every call site as a compile error.
+        this.d.submit.onClick(() => {
+            const name = this.d.nameInput.getValue() || "stranger";
+            this.d.output.setText(`Hello, ${name}!`);
+        });
+    }
+}
+
+const element: HTMLElement = document.querySelector("[data-js-greeter]");
+
+const greeter = new Greeter(new DDM(element, map));
+await greeter.wraplet.initialize();

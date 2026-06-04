@@ -1,0 +1,27 @@
+import { AbstractWraplet } from "wraplet";
+
+// A wraplet wraps an existing DOM node - the tag stays a plain
+// <strong>. There is no upgrade, no shadow root, no new element
+// in the registry: just a class that owns a node.
+class ColorToggle extends AbstractWraplet<HTMLElement> {
+    protected override async onInitialize() {
+        // `nodeManager.addListener` ties the listener to the wraplet's
+        // lifecycle. When the wraplet is destroyed, the listener is
+        // removed automatically - no `disconnectedCallback` to keep
+        // in sync.
+        this.nodeManager.addListener("click", () => {
+            if (!this.node.style.color) {
+                this.node.style.color = "red";
+            } else {
+                this.node.style.color = "";
+            }
+        });
+    }
+}
+
+const element: HTMLElement = document.querySelector("[data-js-color-toggle]");
+
+// Attaching is explicit: you decide when (and whether) a wraplet
+// gets initialized. No global registry, no implicit upgrade.
+const toggle = new ColorToggle(element);
+await toggle.wraplet.initialize();

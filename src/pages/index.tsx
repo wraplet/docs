@@ -55,7 +55,7 @@ export default function Home(): ReactNode {
               <p>You can freely edit all examples and see the results instantly.</p>
               <p>Explore the type-hints in the editor.</p>
               <p>And don't miss the option to reload an example with extensive comments!</p>
-              <div className={styles.funFact}><strong>Fun fact</strong>: all live demos on this website, are made with the <strong><a href="https://exhibitionjs.wraplet.dev">ExhibitionJS</a></strong> library that is powered by <strong>Wraplet</strong>!</div>
+              <div className={"statement"}><strong>Fun fact</strong>: all live demos on this website, are made with the <strong><a href="https://exhibitionjs.wraplet.dev">ExhibitionJS</a></strong> library that is powered by <strong>Wraplet</strong>!</div>
               <BrowserOnly fallback={<div>Loading...</div>}>
                   {() => {
                       const Example = require("@site/src/components/Example").default;

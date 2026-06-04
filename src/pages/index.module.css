@@ -33,13 +33,3 @@
   }
 }
 
-.funFact {
-  background-color: var(--color-secondary-lightest);
-  border-left: 8px solid var(--color-secondary-light);
-  border-radius: 8px;
-  padding: 1.2rem;
-  margin: 1.5rem 0;
-  font-style: italic;
-  font-size: 1.1rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}

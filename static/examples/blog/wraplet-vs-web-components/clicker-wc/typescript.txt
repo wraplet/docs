@@ -1,0 +1,28 @@
+// A Web Component is registered as a brand-new HTML tag.
+// The class IS the element - it extends HTMLElement directly.
+class ColorToggle extends HTMLElement {
+    // `connectedCallback` runs when the browser inserts the element
+    // into the DOM. There is no explicit "initialize" - the browser
+    // upgrades the tag for you.
+    connectedCallback() {
+        this.addEventListener("click", this.handleClick);
+    }
+
+    // `disconnectedCallback` runs when the browser removes the
+    // element. You are responsible for unwiring everything you set
+    // up in `connectedCallback`.
+    disconnectedCallback() {
+        this.removeEventListener("click", this.handleClick);
+    }
+
+    private handleClick = () => {
+        if (!this.style.color) {
+            this.style.color = "red";
+        } else {
+            this.style.color = "";
+        }
+    };
+}
+
+// The element only becomes "alive" once we register the tag name.
+customElements.define("color-toggle", ColorToggle);

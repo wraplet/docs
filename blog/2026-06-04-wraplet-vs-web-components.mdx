@@ -1,0 +1,420 @@
+---
+title: "Wraplet vs Web Components"
+description: A side-by-side look at where Wraplet and Web Components overlap, where they part ways, and which one fits which kind of project.
+slug: wraplet-vs-web-components
+authors: lukasz.zaroda
+tags: [comparison]
+image: https://i.imgur.com/mErPwqL.png
+hide_table_of_contents: false
+---
+
+import BrowserOnly from "@docusaurus/BrowserOnly";
+
+## Introduction
+
+Wraplet and Web Components aren't strangers. They share a lot of DNA, and the
+best way to see it is to look at the same widget written in both.
+
+Here is a simple "color toggle" as a Web Component:
+
+{/* truncate */}
+
+### The Web Components clicker
+
+<BrowserOnly>
+    {() => {
+        const Example = require("@site/src/components/Example").default;
+        const MonacoEditor = require("@site/src/components/MonacoEditor").default;
+
+        return (
+            <Example previewHeight="50px">
+                <h4>HTML</h4>
+                <MonacoEditor contentUrl="/examples/blog/wraplet-vs-web-components/clicker-wc/html.htm" language="html" height="40px"/>
+                <h4>TypeScript</h4>
+                <MonacoEditor contentUrl="/examples/blog/wraplet-vs-web-components/clicker-wc/typescript.txt" language="typescript" height="400px" />
+            </Example>
+        );
+    }}
+</BrowserOnly>
+
+### The Wraplet clicker
+
+<BrowserOnly>
+    {() => {
+        const Example = require("@site/src/components/Example").default;
+        const MonacoEditor = require("@site/src/components/MonacoEditor").default;
+
+        return (
+            <Example previewHeight="50px">
+                <h4>HTML</h4>
+                <MonacoEditor contentUrl="/examples/blog/wraplet-vs-web-components/clicker-wraplet/html.htm" language="html" height="40px"/>
+                <h4>TypeScript</h4>
+                <MonacoEditor contentUrl="/examples/blog/wraplet-vs-web-components/clicker-wraplet/typescript.txt" language="typescript" height="400px" />
+            </Example>
+        );
+    }}
+</BrowserOnly>
+
+Look at them side by side and you'll notice they aren't that different:
+
+- **A class per element.** Behavior lives in a class, not in a hook tree, a
+  template, or a reactivity graph. What you see in the file is what runs in
+  the browser.
+- **No virtual DOM.** Neither one diffs anything or rewrites
+  your source (well, except the TypeScript compiler). The class touches the real DOM,
+  with the real DOM APIs.
+- **Lifecycle hooks.** Both expose a "this is where I start working" hook
+  and a "this is where I tear down" hook. Custom elements call them
+  `connectedCallback` and `disconnectedCallback`; wraplets call them
+  `onInitialize` and `onDestroy`.
+- **Framework-agnostic.** A Web Component lives in any page that can render
+  its tag. A wraplet lives in any page that can run its script. Both play
+  nicely with React, Vue, Angular, plain HTML, or any server-rendered
+  template.
+- **At home in server-rendered HTML.** Neither asks you to rebuild your
+  pages as a single-page app. They just add behavior to markup that already
+  exists.
+
+If your mental model of frontend code is "DOM nodes with classes on them,
+not a render tree," both technologies will feel familiar.
+
+## So where's the actual difference?
+
+The similarities run out the moment you ask: what *is* a component?
+
+A custom element **is** an `HTMLElement` subclass. The class and the element
+are the same object – `document.querySelector("color-toggle")` returns the
+instance itself. A wraplet, by contrast, **wraps** a node. The class lives
+in `this`, the node lives in `this.node`, and the two are bound together but
+remain separate. The HTML stays whatever it already was – a `<div>`, a
+`<strong>`, an `<input>` – and behavior is attached to it by selector.
+
+This single decision shapes everything that follows: composition,
+lifecycle, and dependency management all flow from it. We'll come back to
+those in the next section.
+
+### Lifecycle comparison
+
+Web Component's lifecycle is the same as the element's lifecycle.
+
+Wraplet's lifecycle is decoupled from the element's one. Wraplet can be initialized
+before the element is added to the DOM or destroyed before it is removed.
+
+Additionally, wraplet's lifecycle events can be chained together by the [DependencyManager](/docs/concepts/dependency-manager)
+making it possible to treat multiple interdependent wraplets, managing their own dependencies, as a single unit.
+
+### Dependency management, side by side
+
+Wraplet's dependency management is declarative. To see what that means in
+practice, compare the same "greeter" widget written both ways. First, the
+Web Component:
+
+<BrowserOnly>
+    {() => {
+        const Example = require("@site/src/components/Example").default;
+        const MonacoEditor = require("@site/src/components/MonacoEditor").default;
+
+        return (
+            <Example previewHeight="100px">
+                <h4>HTML</h4>
+                <MonacoEditor contentUrl="/examples/blog/wraplet-vs-web-components/greeter-wc/html.htm" language="html" height="100px"/>
+                <h4>TypeScript</h4>
+                <MonacoEditor contentUrl="/examples/blog/wraplet-vs-web-components/greeter-wc/typescript.txt" language="typescript" height="540px" />
+            </Example>
+        );
+    }}
+</BrowserOnly>
+
+The compiler has no way to verify that `[data-name]` actually matches an
+`<input>`, or that the markup was rendered at all. Rename a selector in the
+HTML and nothing in the TypeScript complains – until a user clicks the button.
+
+Now the same widget as a wraplet:
+
+<BrowserOnly>
+    {() => {
+        const Example = require("@site/src/components/Example").default;
+        const MonacoEditor = require("@site/src/components/MonacoEditor").default;
+
+        return (
+            <Example previewHeight="100px">
+                <h4>HTML</h4>
+                <MonacoEditor contentUrl="/examples/blog/wraplet-vs-web-components/greeter-wraplet/html.htm" language="html" height="120px"/>
+                <h4>TypeScript</h4>
+                <MonacoEditor contentUrl="/examples/blog/wraplet-vs-web-components/greeter-wraplet/typescript.txt" language="typescript" height="700px" />
+            </Example>
+        );
+    }}
+</BrowserOnly>
+
+The [dependency map](/docs/concepts/dependency-manager) declares each child
+once: a selector, a class, and a few flags. From that single source,
+TypeScript infers everything else. `this.d.nameInput` is a `NameInput`
+instance with its own methods, not an `HTMLInputElement` you had to cast.
+Rename a key and every usage breaks loudly, in the compiler, before the
+page ever loads. Mis-type a child's API and you fail to compile.
+
+Web Components have no equivalent. Slots help with placement, not with
+typing. You can build a typed wrapper layer on top, but then you're
+recreating, by hand, what Wraplet gives you out of the box.
+
+<div className={"statement"}>
+    <strong>Side note</strong>: You may have noticed that the Wraplet example is more verbose.
+    The additional code is not a dead weight, though, so don't be discouraged by it.
+    The dependency map and the contracts exposed by dependencies make code much more readable.
+    Wraplet is all about what's great in OOP: encapsulation and contracts. If you follow the
+    recommended practices, it will always be trivial to understand the component's structure.
+
+    It's not strictly forced, though. You are free to implement **impure** wraplets.
+    These are the wraplets that reach out and interact with multiple nodes directly.
+    You'll lose the clarity of dependency structure and contracts but reduce the code verbosity
+    to the Web Component's level, while keeping some of the other wraplet's advantages. Like the
+    ability of an impure wraplet to participate in a dependency tree of another wraplet or
+    automatic listener cleanup.
+
+    Ignoring the feature of dependency map is not recommended, though, because readability is difficult
+    to overestimate, and wraplet is all about readability and long-term maintainability.
+
+    You can think about Wraplet's verbosity this way: It's not a flashy Ferrari supposed to
+    get out of fashion next week. It's a military truck of JavaScript frameworks. Made to be easy to
+    maintain and reliable, first and foremost.
+</div>
+
+### Listener cleanup
+
+In a Web Component, every listener you attached in `connectedCallback` is
+your responsibility to remove in `disconnectedCallback`. The compiler
+won't remind you, and forgetting is a classic source of leaks in long-lived
+pages.
+
+A wraplet extending `AbstractWraplet` or `AbstractDependentWraplet` attaches
+its listeners through `this.nodeManager.addListener(...)`,
+which ties them to the wraplet's lifecycle. When the wraplet is destroyed,
+the [node manager](/docs/concepts/node-manager) removes them automatically.
+You only write cleanup code for things outside the framework's reach –
+third-party widgets, raw timers, external subscriptions.
+
+### Reactivity and attributes
+
+Web Components have a built-in path for attribute reactivity:
+`observedAttributes` plus `attributeChangedCallback`. It's small, native,
+and it's the canonical way for a custom element to react to its own
+attributes.
+
+Wraplet doesn't provide an attribute-based reactivity system.
+By default, state changes are expressed as method calls between wraplets,
+not as attribute mutations the framework observes.
+
+When it comes to interaction between a wraplet and a node,
+if you really want a reactivity system, it's possible to use a
+custom/external solution. Such a reactivity engine
+could be installed on wraplets that need it, through composition.
+Wraplet is not tied to any specific reactivity engine and doesn't plan to be.
+This is because it aims at providing solution only to the most
+fundamental issues and leaves the rest to the ecosystem.
+
+So if you specifically want "set an attribute, get a callback", Web
+Components do that out of the box, and Wraplet doesn't.
+
+### Shadow DOM vs the real DOM
+
+Web Components ship with Shadow DOM: an encapsulated subtree with its own
+scoped styles and its own slot-based composition. That is a real strength
+when you are publishing a widget into pages whose CSS you do not control –
+a chat widget on a customer's site, for instance.
+
+It is also a real cost when you *do* control the page. Styling across the
+boundary requires explicit CSS custom properties or `::part` selectors,
+debugging across the boundary is harder, and the slot system is its own
+small composition language you have to learn.
+
+Wraplets have no Shadow DOM. They work directly on the live tree, with the
+same CSS rules and the same `querySelector` semantics as everything else on
+the page.
+
+
+## Problems and solutions
+
+The technical comparison above sketched the shape of each technology. Now
+let's go deeper into *why* Wraplet exists in the first place — where these
+differences really came from. Most of them came from the simple fact that
+Web Component is an element, not a behavior.
+
+At its core Wraplet decouples the behavior from the DOM, which solves quite a few problems,
+as we'll show here.
+
+### WC: Challenging composition
+
+Because a web component is an element, you cannot "merge" the behaviors of two
+web components in a single element. For example, let's say you have
+this:
+
+```html
+<my-webcomponent class="container">
+    <div class="row">
+        ...
+    </div>
+</my-webcomponent>
+```
+
+Now you want to add a second behavior to your container. How would you do that?
+
+Like this:
+
+```html
+<second-behavior class="container">
+    <my-webcomponent>
+        <div class="row">
+            ...
+        </div>
+    </my-webcomponent>
+</second-behavior>
+```
+
+Or like this:
+
+```html
+<my-webcomponent class="container">
+    <second-behavior>
+        <div class="row">
+            ...
+        </div>
+    </second-behavior>
+</my-webcomponent>
+```
+
+Do you see the problem? The HTML elements are inherently hierarchical.
+
+Wouldn't it be nice if you could *compose* your element's behavior
+from the library of behaviors, without meddling in the HTML structure?
+As long as Web Components are elements, it won't be easily possible.
+You would have to build in a composition layer on top of `my-webcomponent`
+from the example above. It's a boilerplate that should be easily
+available from the get-go.
+
+There are propositions to solve this problem, e.g.:
+[project-custom-attributes](https://github.com/webplatformco/project-custom-attributes/)
+But that's where we stand right now.
+
+### Wraplet: Natural composition
+
+Wraplet uses an element, but an element is oblivious to a wraplet.
+It means that multiple wraplets can be attached to the same element, providing
+different behaviors. Extending an element's behavior becomes as simple as:
+
+```html
+<div data-js-behavior1 data-js-behavior2 class="container">
+    <div class="row"></div>
+</div>
+```
+
+This allows thinking about wraplets as behaviors.
+
+### WC: The lifecycle of a component is the same as the lifecycle of an element
+
+When a web component is added to the DOM, the `connectedCallback()` hook gets called.
+When it is removed, the `disconnectedCallback()` hook gets called. There is a problem
+with this. These are synchronous hooks, just like adding or removing an element
+from DOM are synchronous operations. The problem becomes clear when you want to do something
+that is decoupled from the lifecycle of an element itself. For example, you want to
+run destruction logic before the element is removed from the DOM. This is often useful
+because during destruction you can still show something to the user. Or maybe you want
+to initialize an element before adding it to the DOM, so it will already have the
+correct state. With web components, you would need to implement a custom lifecycle logic.
+There is no standard for such a thing, which means that you may encounter methods like `init()`,
+`initialize()`, `start()` or `ready()` in different implementations. It makes things less readable,
+but you could accept that and roll out your own lifecycle methods. They could solve your
+problem as long as it's in the scope of a single component. The moment you need to tie together
+async lifecycles of multiple web components, you've got a problem.
+
+### Wraplet: Lifecycle of a component is decoupled from the lifecycle of an element
+
+Wraplet can wrap elements that are not attached to the DOM yet. They can be
+prepared before they'll even be shown to the user. Wraplets can also be destroyed before
+an element is removed from the DOM. The destruction logic is happening, and at the
+same time an element may display a spinner to the user. Decoupling of the wraplet's
+lifecycle from the element's one gives you flexibility.
+
+As an additional bonus, this lifecycle can be shared across multiple wraplets, allowing for
+dependent asynchronous lifecycles – initializing one component can trigger initialization of
+others, and the whole process completes when the whole dependency tree is ready. It makes wraplets
+more self-contained, as they can easily manage their own asynchronous dependencies across the whole
+dependency tree.
+
+### WC: Inability to extend built-in elements
+
+I mean, you can, but not in Safari, so in fact, you cannot.
+Practically, you have to reimplement built-in elements or
+use libraries that do it for you. That means additional bandwidth used,
+and, maybe even more important nowadays, additional dependencies (more supply chain
+attack vectors, more potential vulnerabilities).
+
+If you want to polyfill a built-in element support, at the moment of me writing this article,
+`@ungap/custom-elements` weights **2.76 kB**. For comparison, the whole `wraplet` weights **4.48 kB**.
+
+### Wraplet: All elements are treated the same, consistently
+
+From the wraplet's perspective, a built-in element is no different from a
+custom one. Yes, you can wrap a Web Component in a wraplet. This provides
+you with a unified DX. You only need to know what an element does to interact with it.
+That's it.
+
+### WC: Imperative dependency management
+
+Web Components find their dependencies by querying the DOM directly.
+
+What happens when one of the dependencies is missing? How to treat
+optional dependencies and the required ones? That's the logic you have
+to implement yourself. To understand what a component uses, you have to scan the
+imperative code, which makes for a bad developer experience. This is because
+a large part of the answer of what code does comes from what it needs.
+
+### Wraplet: Declarative dependency management
+
+When creating a wraplet dependent on other wraplets, you declare a dependency map first.
+Then, based on this map, the `DependencyManager` finds proper elements and instantiates
+the dependencies giving you back a map of instances that are ready to use. You don't need
+to validate the structure of your dependencies. You don't need to assert their types.
+Everything is done for you and validated automatically when your wraplet comes to life, so
+if there are any errors, you will get immediate feedback. It makes code more readable and
+much easier to maintain.
+
+
+## So when should you pick which?
+
+Both technologies are useful. The honest answer is rarely "one is always better" –
+it's "which trade-off fits this project?"
+
+Pick Web Components when:
+
+- You need to publish a self-contained widget into pages whose CSS and
+  scripts you don't control – embeddable chat, analytics dashboards,
+  third-party form widgets. Shadow DOM was designed for exactly that.
+- You want a no-dependency, browser-native solution and you're prepared to
+  accept weaker typing and looser composition in exchange.
+- "Set an attribute, get a callback" is a natural fit for your component's
+  public API.
+
+Pick Wraplet when:
+
+- You're progressively enhancing existing markup – server-rendered apps,
+  CMS templates, admin panels, large legacy frontends.
+- You want TypeScript to actually catch your DOM wiring mistakes, including
+  parent–child relationships.
+- You want a readable structure and lifecycles spanning across complex components.
+- You want listener cleanup to be the framework's problem, not yours.
+- You want the same tag and CSS rules as the rest of your page, with no
+  Shadow DOM boundary to design around.
+- You like Web Components, but you are concerned about the scalability and maintenance
+  of a large codebase. Wraplet was designed to address that specifically.
+
+## Wrapping up
+
+Wraplet and Web Components look at the same situation – frontend fatigue,
+framework magic, drift away from the DOM – and answer it differently. Web
+Components answer with a browser-native API and strong runtime
+encapsulation. Wraplet answers with a TypeScript-first library, a typed
+dependency model, and a DOM-decoupled lifecycle that works together with this model.
+
+If your project lives close to existing server-rendered HTML, and you appreciate what TypeScript brings in to the codebases, the
+[Quick start](/docs/getting-started/quick-start) is the fastest way to get started.

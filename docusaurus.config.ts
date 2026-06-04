@@ -54,10 +54,11 @@ const config: Config = {
             type: ['rss', 'atom'],
             xslt: true,
           },
+          showLastUpdateTime: true,
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
-            'https://github.com/wraplet/wraplet-docs/tree/main/',
+            'https://github.com/wraplet/docs/tree/main/',
           // Useful options to enforce blogging best practices
           onInlineTags: 'warn',
           onInlineAuthors: 'warn',

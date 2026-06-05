@@ -69,7 +69,7 @@ The key differences are:
 - **Children's lifecycle is wired to the parent's lifecycle.** When the parent initializes, all dependencies initialize. When the parent is destroyed, all dependencies are destroyed. You don't have to orchestrate this by hand.
 - **Dedicated factory helpers** – `createDependentWraplets` and `createAndInitializeDependentWraplets` are the counterparts of the helpers from `AbstractWraplet`, adapted to the dependency-aware constructor signature. The original `createWraplets` / `createAndInitializeWraplets` are intentionally disabled here, because they would not produce a valid `AbstractDependentWraplet` instance.
 
-If you've read the [TypeScript-first Architecture](/docs/getting-started/typescript-first-architecture), `AbstractDependentWraplet` is where the "dependency map is the type" idea actually meets the runtime.
+If you've read the [TypeScript-first Architecture](/docs/concepts/typescript-first-architecture), `AbstractDependentWraplet` is where the "dependency map is the type" idea actually meets the runtime.
 
 ## When to use AbstractWraplet vs AbstractDependentWraplet
 A short rule of thumb:

@@ -61,7 +61,7 @@ const FeatureList: FeatureItem[] = [
       description: (
         <>
             <p>
-                Just ~5&nbsp;KB gzipped.
+                Just ~5&nbsp;kB gzipped.
             </p>
             <p>
                 Wraplet stays out of your way and your bundle. It adds structure to your frontend
@@ -88,7 +88,7 @@ const FeatureList: FeatureItem[] = [
       ),
     },
     {
-      title: 'Easy to understand by AI',
+      title: 'Easy to understand by LLMs',
       Svg: null,
       description: (
         <>

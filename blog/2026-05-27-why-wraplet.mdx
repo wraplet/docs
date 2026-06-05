@@ -98,11 +98,11 @@ piece of HTML:
         const MonacoEditor = require("@site/src/components/MonacoEditor").default;
 
         return (
-            <Example loadComments={true} previewHeight="50px">
+            <Example previewHeight="50px">
                 <h4>HTML</h4>
                 <MonacoEditor contentUrl="/examples/blog/why-wraplet/no-magic/html.htm" language="html" height="40px"/>
                 <h4>TypeScript</h4>
-                <MonacoEditor contentUrl="/examples/blog/why-wraplet/no-magic/typescript.txt" language="typescript" height="420px" stripComments={true} />
+                <MonacoEditor contentUrl="/examples/blog/why-wraplet/no-magic/typescript.txt" language="typescript" height="420px" />
             </Example>
         );
     }}
@@ -155,11 +155,11 @@ and get a fully typed `this.d` object back:
         const MonacoEditor = require("@site/src/components/MonacoEditor").default;
 
         return (
-            <Example loadComments={true} previewHeight="100px">
+            <Example previewHeight="100px">
                 <h4>HTML</h4>
                 <MonacoEditor contentUrl="/examples/blog/why-wraplet/typed-deps/html.htm" language="html" height="120px"/>
                 <h4>TypeScript</h4>
-                <MonacoEditor contentUrl="/examples/blog/why-wraplet/typed-deps/typescript.txt" language="typescript" height="640px" stripComments={true} />
+                <MonacoEditor contentUrl="/examples/blog/why-wraplet/typed-deps/typescript.txt" language="typescript" height="640px" />
             </Example>
         );
     }}

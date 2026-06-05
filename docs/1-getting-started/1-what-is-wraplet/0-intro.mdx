@@ -5,13 +5,50 @@ slug: /getting-started/what-is-wraplet/introduction
 sidebar_position: 0
 ---
 
+import BrowserOnly from "@docusaurus/BrowserOnly";
+
 **wraplet** is a JavaScript and TypeScript framework for organizing frontend code around the real DOM. Instead of replacing the browser's native structure with a virtual rendering layer,
 it helps you turn actual interface elements into components with their own lifecycle, dependencies, and responsibilities.
 
 It is especially useful when you want to improve architecture without rebuilding the entire UI from scratch.
 
-Wraplet embraces the old-school philosophy of a front-end developer working with both the backend-rendered templates and front-end JavaScript,
-but with new technology, making it as clean as never before, with declarative dependency management and easily testable subcomponents.
+## Core idea
+
+The framework connects class instances to real DOM nodes and lets you manage them in a predictable way.
+
+```mermaid
+flowchart LR
+    A[Existing DOM] --> B[Wraplet binds components to elements]
+    B --> C[Typed dependencies]
+    B --> D[Shared lifecycles decoupled from DOM]
+    B --> E[Modular frontend architecture]
+```
+
+## A wraplet in 3 minutes
+
+A wraplet is just a class that attaches to an element you already have, gives it a
+lifecycle, and lets you wire in typed dependencies. Here is the smallest possible example:
+
+<BrowserOnly>
+    {() => {
+        const Example = require("@site/src/components/Example").default;
+        const MonacoEditor = require("@site/src/components/MonacoEditor").default;
+        return (
+            <Example style="small">
+                <h4>HTML</h4>
+                <MonacoEditor contentUrl="/examples/basics/html.htm" language="html" height="50px" />
+                <h4>TypeScript</h4>
+                <MonacoEditor contentUrl="/examples/basics/typescript.txt" language="typescript" />
+            </Example>
+        );
+    }}
+</BrowserOnly>
+
+That is the whole mental model: a class, an element, a lifecycle. No virtual DOM, no template language, no compiler step.
+
+Does it look like a Web Component to you? That's a great observation! To see the direct comparison, see the [Wraplet vs Web Components](/blog/wraplet-vs-web-components) blog post.
+
+If you're looking for a more general rationale, you may take a look at [Front-end, regrounded: Why Wraplet might be what you’re missing](/blog/why-wraplet) blog post.
 
 ## What Wraplet is for
 
@@ -22,38 +59,21 @@ Wraplet is a strong fit for projects that:
 - want typed, declarative dependencies between components,
 - evolve gradually instead of moving to a full SPA rewrite.
 
-## Core idea
+## Where Wraplet shines
 
-The framework connects class instances to real DOM nodes and lets you manage them in a predictable way.
+Wraplet is a strong fit for projects that work directly with an existing DOM, prefer
+classes, encapsulation, and explicit relationships, and want to evolve gradually
+instead of moving to a full SPA rewrite. In practice, that means:
 
-```mermaid
-flowchart LR
-    A[Existing DOM] --> B[Wraplet binds components to elements]
-    B --> C[Lifecycle management]
-    B --> D[Typed dependencies]
-    B --> E[Modular frontend architecture]
-```
+- a clear object-oriented model that stays close to the DOM, instead of hiding it behind a heavy abstraction,
+- typed, declarative dependencies between components, with safe refactoring through a typed API,
+- a predictable lifecycle for initialization and cleanup,
+- a natural path for progressive modernization of existing interfaces.
 
-## Why to consider Wraplet
+## Pick your path
 
-- It keeps code close to the DOM instead of hiding it behind a heavy abstraction.
-- It provides a predictable lifecycle for initialization and cleanup.
-- It supports safe refactoring with a typed API.
-- It works well for progressive modernization of existing interfaces.
-- It fits teams that prefer classes, encapsulation, and explicit relationships.
+Depending on what you're after, here's where to go next:
 
-## In this documentation
-
-This documentation provides an overview of:
-
-- what Wraplet is,
-- what are its core strengths,
-- where it works best,
-- how it compares with popular frontend frameworks.
-
-and a lot of code examples!
-
-Continue with [Core strengths](./core-strengths) to see what it excels at.
-
-Or, if you look for technicalities, jump straight into the [Technical overview](/docs/getting-started/technical-overview)
-and continue through the [Core concepts](/docs/category/core-concepts).
+- 📖 **See what it's great at in detail** → [Core strengths](/docs/getting-started/what-is-wraplet/core-strengths)
+- 🔧 **Prefer the technical angle** → [TypeScript-first Architecture](/docs/getting-started/typescript-first-architecture), then [Core concepts](/docs/category/core-concepts)
+- 🚀 **Had enough theory, just want to build** → [Quick start](/docs/getting-started/quick-start)

@@ -10,6 +10,21 @@ const config: Config = {
   favicon: 'img/favicon.svg',
   plugins: [
     './plugins/monaco-editor-plugin.ts',
+    [
+      '@docusaurus/plugin-client-redirects',
+      {
+        redirects: [
+          {
+            from: ['/docs/getting-started/what-is-wraplet/why-wraplet-is-perfect-for-libraries'],
+            to: '/docs/why-wraplet-is-perfect-for-libraries',
+          },
+          {
+            from: ['/docs/getting-started/technical-overview'],
+            to: '/docs/getting-started/typescript-first-architecture'
+          }
+        ],
+      },
+    ],
   ],
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
   future: {

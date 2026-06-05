@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@docusaurus/core": "3.10.1",
+    "@docusaurus/plugin-client-redirects": "^3.10.1",
     "@docusaurus/plugin-content-blog": "^3.10.1",
     "@docusaurus/preset-classic": "3.10.1",
     "@docusaurus/theme-mermaid": "^3.10.1",
@@ -32,10 +33,10 @@
     "react-dom": "^19.2.3"
   },
   "devDependencies": {
+    "@docusaurus/faster": "^3.10.1",
     "@docusaurus/module-type-aliases": "^3.10.1",
     "@docusaurus/tsconfig": "3.10.1",
     "@docusaurus/types": "3.10.1",
-    "@docusaurus/faster": "^3.10.1",
     "@emotion/is-prop-valid": "^1.4.0",
     "@tsconfig/docusaurus": "^2.0.7",
     "typescript": "~5.9.3"

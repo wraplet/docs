@@ -70,7 +70,12 @@ Look at them side by side and you'll notice they aren't that different:
 - **Framework-agnostic.** A Web Component lives in any page that can render
   its tag. A wraplet lives in any page that can run its script. Both play
   nicely with React, Vue, Angular, plain HTML, or any server-rendered
-  template.
+  template.  A Web Component lives in any page that can render its tag.
+  A wraplet lives in any page that can run its script. Both play nicely with
+  React, Vue, Angular, plain HTML, or any server-rendered template.
+  When used with a rendering framework, Wraplet does not take over that
+  framework’s rendering lifecycle, so you should coordinate wraplet
+initialization and destruction with DOM changes made by the framework.
 - **At home in server-rendered HTML.** Neither asks you to rebuild your
   pages as a single-page app. They just add behavior to markup that already
   exists.

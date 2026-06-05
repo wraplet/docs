@@ -9,12 +9,19 @@ hide_table_of_contents: false
 
 I'm thrilled to announce the release of the `1.0.0-rc.1` version.
 
-What does it mean? It means a **pledge that there will be no further, even minor,
-BC breaking API changes**, unless something turns out to be clearly broken, but that's unlikely. Why?
-Because Wraplet is (and has been for quite some time already) **100% covered with tests, including branch coverage**.
-I have high confidence in this codebase, and it was tempting to push out the 1.0.0 release right away.
-For the long-lived projects a certain caution is required, though, and it's best to exercise it from the start,
-so we'll do things slowly, strictly following the SemVer rules.
+So what does this mean for you? It's a **pledge that there will be no further BC breaking API changes**.
+The API you build on today is the API you can rely on.
+
+Why am I confident enough to commit to that? Because Wraplet is (and has been for quite some time already)
+**100% covered with tests, including branch coverage**. It was tempting to push out a `1.0.0` release right away.
+For long-lived projects a certain caution is required, though, and it's best to exercise it from the start,
+so we'll move slowly and strictly follow the SemVer rules.
+
+One thing worth clarifying: the stability pledge doesn't mean the base classes you extend are frozen solid.
+Within minor versions Wraplet may still **add** new methods and properties to them as its capabilities grow —
+in particular lifecycle methods whose names start with `on`. To stay on the safe side, treat the `on` prefix
+as reserved and avoid using it for your own methods on classes deriving from Wraplet, so a future addition can't
+clash with them. We'll be careful about the name clashes.
 
 {/* truncate */}
 

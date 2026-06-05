@@ -19,8 +19,8 @@ const config: Config = {
             to: '/docs/why-wraplet-is-perfect-for-libraries',
           },
           {
-            from: ['/docs/getting-started/technical-overview'],
-            to: '/docs/getting-started/typescript-first-architecture'
+            from: ['/docs/getting-started/technical-overview', '/docs/getting-started/typescript-first-architecture'],
+            to: '/docs/concepts/typescript-first-architecture'
           }
         ],
       },
@@ -61,7 +61,7 @@ const config: Config = {
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
-            'https://github.com/wraplet/wraplet-docs/tree/main/',
+            'https://github.com/wraplet/docs/tree/main/',
         },
         blog: {
           showReadingTime: true,
@@ -102,10 +102,9 @@ const config: Config = {
       },
       items: [
         {
-          type: 'docSidebar',
-          sidebarId: 'tutorialSidebar',
-          position: 'left',
+          href: '/docs/',
           label: 'Docs',
+          position: 'left',
         },
         {
           to: 'blog',

@@ -13,15 +13,6 @@ import { AbstractWraplet } from "wraplet";
 // that here.
 
 class ExampleWraplet extends AbstractWraplet<HTMLElement> {
-    // We'll create a simple method setting a value
-    // inside our wrapped element.
-    //
-    // The "this.node" property is just a handy shortcut
-    // provided by the "AbstractWraplet" class.
-    public setValue(value: string): void {
-        this.node.innerHTML = value;
-    }
-
     // This method hooks into the wraplet's lifecycle.
     // It is called when the wraplet is initialized.
     public async onInitialize() {
@@ -43,14 +34,10 @@ const element: HTMLElement = document.querySelector("[data-js-example]");
 const example = new ExampleWraplet(element);
 
 // The `wraplet` property is an API for interacting with a wraplet's
-// lifecycle and some other features.
+// lifecycle.
 //
 // Wraplet should be initialized for the correct lifecycle handling.
 await example.wraplet.initialize();
-
-// And now we can interact with our element
-// through our wraplet's methods.
-example.setValue("Click me!");
 
 // We can destroy our wraplet if we don't need it anymore.
 // Note that after uncommenting this line, clicking the element
@@ -61,12 +48,3 @@ example.setValue("Click me!");
 // automatically removes all event listeners registered
 // through it.
 //await example.wraplet.destroy();
-
-// This is a very basic example showing how introducing:
-// - an abstraction over element interactions;
-// - lifecycle management;
-// - and type-hinting;
-// Make our code cleaner and more maintainable.
-//
-// However, the real fun starts when we introduce a dependency
-// management next.

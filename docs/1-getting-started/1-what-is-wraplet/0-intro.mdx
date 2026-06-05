@@ -36,9 +36,9 @@ lifecycle, and lets you wire in typed dependencies. Here is the smallest possibl
         return (
             <Example style="small">
                 <h4>HTML</h4>
-                <MonacoEditor contentUrl="/examples/basics/html.htm" language="html" height="50px" />
+                <MonacoEditor contentUrl="/examples/basics/html.htm" language="html" height="40px" />
                 <h4>TypeScript</h4>
-                <MonacoEditor contentUrl="/examples/basics/typescript.txt" language="typescript" />
+                <MonacoEditor contentUrl="/examples/basics/typescript.txt" language="typescript" stripComments={true} />
             </Example>
         );
     }}
@@ -46,9 +46,10 @@ lifecycle, and lets you wire in typed dependencies. Here is the smallest possibl
 
 That is the whole mental model: a class, an element, a lifecycle. No virtual DOM, no template language, no compiler step.
 
-Does it look like a Web Component to you? That's a great observation! To see the direct comparison, see the [Wraplet vs Web Components](/blog/wraplet-vs-web-components) blog post.
+Does it look like a Web Component to you? That's a great observation! The similarities are striking indeed, but there
+is more to Wraplet than meets the eye in this small example. To see the direct comparison, see the [Wraplet vs Web Components](/blog/wraplet-vs-web-components) blog post.
 
-If you're looking for a more general rationale, you may take a look at [Front-end, regrounded: Why Wraplet might be what you’re missing](/blog/why-wraplet) blog post.
+If you're looking for a more general rationale of why Wraplet may be worth your time, you may take a look at [Front-end, regrounded: Why Wraplet might be what you’re missing](/blog/why-wraplet) blog post.
 
 ## What Wraplet is for
 

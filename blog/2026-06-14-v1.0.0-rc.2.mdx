@@ -1,0 +1,75 @@
+---
+title: "Wraplet 1.0.0-rc.2: Introducing the Wiring API"
+description: 1.0.0-rc.2 and Wiring API announcement.
+slug: v1.0.0-rc-2-released
+authors: lukasz.zaroda
+tags: [release, announcement]
+hide_table_of_contents: false
+---
+
+Inheritance is one of OOP’s most powerful tools, but also one of its easiest to misuse.
+When applied in the wrong places, it can create internal dependency hell.
+
+Yet Wraplet does provide base classes with basic implementations of the Wraplet API
+that users can extend. They are thin, sure, but I never wanted
+to force them on people using Wraplet. That's why `Wraplet API` is encapsulated in a single property,
+and can be created manually on any class, so anyone who wants to avoid inheritance can do so completely.
+The `Wraplet API` can be created by calling a single function: `createWrapletApi`.
+You can hook into the wraplet's lifecycle by passing lifecycle callbacks to it.
+
+Hard to make it simpler than that, right?
+
+{/* truncate */}
+
+Well, when your wraplets are simple, sure. But what if you augment their capabilities with multiple
+objects that have their own lifecycle that should be tied to the wraplet's lifecycle?
+
+You would need to remember to wire up their initialization to the wraplet's initialization,
+and their destruction to the wraplet's destruction. And what if one of these objects does not have
+destruction logic today but gains it later? You would need to update the wiring across all wraplets that use it.
+
+This bothered me, so I decided to implement a **Wiring API** and include it in the `1.0.0-rc.2` release.
+
+It introduces the [composeWrapletApi](/docs/reference/wraplet#composewrapletapi) function and the
+[Wiring](/docs/reference/wraplet#composewrapletapi) type.
+
+It makes it possible for objects and classes to manage their own wiring and makes it easier
+to add and manage features to your wraplets through composition.
+
+Let's see the live example (taken from the reference page):
+
+import BrowserOnly from "@docusaurus/BrowserOnly";
+
+<BrowserOnly>
+    {() => {
+        const Example = require("@site/src/components/Example").default;
+        const MonacoEditor = require("@site/src/components/MonacoEditor").default;
+
+        return (
+            <Example loadComments={false}>
+                <h4>HTML</h4>
+                <MonacoEditor contentUrl="/examples/reference/wraplet-api/compose-wraplet-api/html.htm" language="html" height="30px" />
+                <h4>TypeScript</h4>
+                <MonacoEditor contentUrl="/examples/reference/wraplet-api/compose-wraplet-api/typescript.txt" language="typescript" height="620px" />
+            </Example>
+        );
+    }}
+</BrowserOnly>
+
+To conclude: Instead of manually connecting every feature to every lifecycle callback,
+you define wiring once and reuse it across wraplets. This should make composition-based
+wraplets easier to manage as their behavior grows.
+
+I hope you like this addition.
+
+---
+
+If you are new to Wraplet, you can catch up by reading the [introduction](/docs/getting-started/what-is-wraplet/introduction).
+
+To start developing with Wraplet right now, see: [quick start](/docs/getting-started/quick-start).
+
+If you find any issues, please report them in the [issue tracker](https://github.com/wraplet/wraplet/issues).
+
+You can also participate in the discussion about the Wraplet's future [here](https://github.com/orgs/wraplet/discussions).
+
+Happy coding!

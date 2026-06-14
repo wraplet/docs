@@ -30,9 +30,9 @@ interface WrapletApi {
 }
 ```
 
-WrapletApi's properties are:
+## WrapletAPI's properties
 
-## status
+### status
 
 ```typescript
 interface Status {
@@ -45,15 +45,15 @@ interface Status {
 
 The `status` property is a read-only object that contains information about the wraplet's lifecycle.
 
-## destroy
+### destroy
 
 `destroy` is an asynchronous method that's responsible for destroying a wraplet.
 
-## initialize
+### initialize
 
 `initialize` is an asynchronous method that's responsible for initializing a wraplet.
 
-## addDestroyListener
+### addDestroyListener
 
 `addDestroyListener` is a method that allows you to add a listener to the wraplet that will be executed
 during wraplet's destruction.
@@ -63,6 +63,51 @@ type DestroyListener<W extends Wraplet = Wraplet> = (
   wraplet: W,
 ) => Promise<void>;
 ```
+
+## Helper functions
+
+### createWrapletApi
+
+`createWrapletApi` is a simple function that creates a new `WrapletApi` instance. You inject your callbacks into it
+to run your custom code on the Wraplet's lifecycle events.
+
+```typescript
+function createWrapletApi(
+  args: WrapletApiFactoryArgs,
+): WrapletApi & WrapletApiDebug;
+```
+
+```typescript
+type WrapletApiFactoryArgs<N extends Node = Node> = {
+  node?: N;
+  wraplet: Wraplet;
+  destroyCallback?: WrapletApiFactoryBasicCallback;
+  initializeCallback?: WrapletApiFactoryBasicCallback;
+}
+```
+
+### composeWrapletApi
+
+`composeWrapletApi` function allows managing wirings of your objects with Wraplet API through declarative composition.
+Basically, features shared by multiple wraplets can provide their own wirings, so if their wiring changes, it changes only
+in a single place (and if they are external dependencies, you might not need to change your code at all).
+
+```typescript
+function composeWrapletApi(
+  node: Node,
+  wraplet: Wraplet,
+  wirings: Wiring[],
+): WrapletApi & WrapletApiDebug;
+```
+
+The `Wiring` type is similar to object that you pass to the `createWrapletApi` function, but it contains callbacks only:
+
+```typescript
+type Wiring = Omit<WrapletApiFactoryArgs, "wraplet" | "node">;
+```
+
+`composeWrapletApi` merges multiple wirings into a single object passed into the `createWrapletApi` function.
+Initialization callbacks are then executed in the order of the wirings, but destruction callbacks are executed in reverse order.
 
 ## Examples
 
@@ -80,9 +125,30 @@ In this example we'll create a simple custom class implementing the `Wraplet` in
         return (
             <Example style="small" loadComments={false}>
                 <h4>HTML</h4>
-                <MonacoEditor contentUrl="/examples/wraplet-api/html.htm" language="html" height="30px" />
+                <MonacoEditor contentUrl="/examples/reference/wraplet-api/basic/html.htm" language="html" height="30px" />
                 <h4>TypeScript</h4>
-                <MonacoEditor contentUrl="/examples/wraplet-api/typescript.txt" language="typescript" height="620px" />
+                <MonacoEditor contentUrl="/examples/reference/wraplet-api/basic/typescript.txt" language="typescript" height="620px" />
+            </Example>
+        );
+    }}
+</BrowserOnly>
+
+### Implementing WrapletApi with composeWrapletApi
+
+Thanks to the `composeWrapletApi` helper, you can easily wire up additional features of your wraplet with Wraplet API, if they
+have a lifecycle to share.
+
+<BrowserOnly>
+    {() => {
+        const Example = require("@site/src/components/Example").default;
+        const MonacoEditor = require("@site/src/components/MonacoEditor").default;
+
+        return (
+            <Example style="small" loadComments={false}>
+                <h4>HTML</h4>
+                <MonacoEditor contentUrl="/examples/reference/wraplet-api/compose-wraplet-api/html.htm" language="html" height="30px" />
+                <h4>TypeScript</h4>
+                <MonacoEditor contentUrl="/examples/reference/wraplet-api/compose-wraplet-api/typescript.txt" language="typescript" height="620px" />
             </Example>
         );
     }}

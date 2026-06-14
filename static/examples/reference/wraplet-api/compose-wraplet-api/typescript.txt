@@ -1,0 +1,57 @@
+import {
+    type Wraplet,
+    type WrapletApi,
+    AbstractWraplet,
+    composeWrapletApi,
+    NodeManager,
+} from "wraplet";
+
+class TestWrapletClass implements Wraplet {
+  public wraplet: WrapletApi;
+
+  private nodeManager: NodeManager<HTMLElement>;
+
+  constructor(private node: HTMLElement) {
+    this.nodeManager = new NodeManager(node);
+    // `composeWrapletApi` was made to allow for declarative wiring.
+    this.wraplet = composeWrapletApi(node, this, [
+      // Classes/objects can provide their own wirings, so you don't
+      // need to think how to wire them up. In this example,
+      // `NodeManager` registers its destruction callback automatically,
+      // making its destruction tied to the Wraplet's one.
+      //
+      // If it required wiring up also its initialization in
+      // the future, you wouldn't need to change this code. It could
+      // extend its wiring without bothering you.
+      NodeManager.wire(this.nodeManager),
+
+      // You can re-use wirings of provided base classes without
+      // extending them. It was made to make it even easier to avoid
+      // inheritance.
+      AbstractWraplet.wiring({
+        initializeCallback: this.onInitialize.bind(this),
+      }),
+
+      // As you can see, this way it's possible to add features
+      // to your wraplet through composition and declaratively
+      // wire them up with Wraplet API if they have a lifecycle
+      // to be shared.
+    ]);
+  }
+
+  private async onInitialize() {
+    this.nodeManager.addListener("click", () => {
+      if (!this.node.style.backgroundColor) {
+        this.node.style.backgroundColor = "red";
+      } else {
+        this.node.style.backgroundColor = '';
+      }
+    });
+  }
+}
+
+const element: HTMLElement = document.querySelector("[data-js-example]");
+
+const instance = new TestWrapletClass(element);
+
+await instance.wraplet.initialize();

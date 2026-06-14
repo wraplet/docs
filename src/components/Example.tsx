@@ -332,7 +332,6 @@ export default class Example extends React.Component<ExampleProps, ExampleState>
             display: flex;
             flex-direction: column;
             border-radius: 0.75rem;
-            overflow: hidden;
             border: 1px solid var(--ifm-color-emphasis-200);
             box-shadow: var(--ifm-global-shadow-lw);
             background: var(--ifm-background-surface-color);

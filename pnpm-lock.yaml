@@ -33,8 +33,8 @@ importers:
         specifier: ^2.1.1
         version: 2.1.1
       exhibitionjs:
-        specifier: ^1.0.0-beta.15
-        version: 1.0.0-beta.15(monaco-editor@0.55.1)
+        specifier: ^1.0.0-rc.1
+        version: 1.0.0-rc.1(monaco-editor@0.55.1)
       framer-motion:
         specifier: ^12.23.26
         version: 12.23.26(@emotion/is-prop-valid@1.4.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -3255,8 +3255,8 @@ packages:
     resolution: {integrity: sha512-8uSpZZocAZRBAPIEINJj3Lo9HyGitllczc27Eh5YYojjMFMn8yHMDMaUHE2Jqfq05D/wucwI4JGURyXt1vchyg==}
     engines: {node: '>=10'}
 
-  exhibitionjs@1.0.0-beta.15:
-    resolution: {integrity: sha512-4uj4W9j2iUfVClxpjFjsL7yRUnKlYYyi6FAvc7m9FqjCkqq5lC+wJ8jZkepozyhvlfhGubLocbtUW5IW7T0BGg==}
+  exhibitionjs@1.0.0-rc.1:
+    resolution: {integrity: sha512-CWpiF0Y+DHb7aIMOQZEhS+n+3ioSlOSHdNudg13VC5ll84nMaLTpBqYFWQKEOXyXWGHDT+B0MoQIqCtNmpga1Q==}
     peerDependencies:
       monaco-editor: ^0.55.1
 
@@ -3875,6 +3875,9 @@ packages:
   kind-of@6.0.3:
     resolution: {integrity: sha512-dcS1ul+9tmeD95T+x28/ehLgd9mENa3LsvDTtzm3vyBEO7RPptvAD+t44WVXaUjTBRcrpFeFlC8WCruUR456hw==}
     engines: {node: '>=0.10.0'}
+
+  kivistorage@1.0.1:
+    resolution: {integrity: sha512-b4Y51JlBjmnQZzsMgQrQyviW/dgYtjRHJyE+9TIYG19XJwCtf70LGNlcYvazK1YzyPzW0fOq6MYvboKTWpWZJA==}
 
   kleur@3.0.3:
     resolution: {integrity: sha512-eTIzlVOSUR+JxdDFepEYcBMtZ9Qqdef+rnzWdRZuMbOywu5tO2w2N7rqjoANZ5k9vywhL6Br1VRjUIgTQx4E8w==}
@@ -5851,8 +5854,8 @@ packages:
     resolution: {integrity: sha512-si7QWI6zUMq56bESFvagtmzMdGOtoxfR+Sez11Mobfc7tm+VkUckk9bW2UeffTGVUbOksxmSw0AA2gs8g71NCQ==}
     engines: {node: '>=12'}
 
-  wraplet@1.0.0-beta.18:
-    resolution: {integrity: sha512-0P7/YDGIDNBtJvk7mFQqA1PfjPqhpa+dQ3x5/F+Mg/BpZovUs2q7jhzTz634B6TY+R7Pdo/agIzK2j3TjMQhQg==}
+  wraplet@1.0.0-rc.2:
+    resolution: {integrity: sha512-bYvdUBmPJU3TVOtBQbQ8xvyDkWYtrKGdhYNm6dGo+pk63y6UU4kC8e3Jim1NCKM0+dBiv0gf++uuiQ7gM5Mirw==}
 
   write-file-atomic@3.0.3:
     resolution: {integrity: sha512-AvHcyZ5JnSfq3ioSyjrBkH9yW4m7Ayk8/9My/DD9onKeu/94fwrMocemO2QAJFAlnnDN+ZDS+ZjAR5ua1/PV/Q==}
@@ -10112,10 +10115,11 @@ snapshots:
       signal-exit: 3.0.7
       strip-final-newline: 2.0.0
 
-  exhibitionjs@1.0.0-beta.15(monaco-editor@0.55.1):
+  exhibitionjs@1.0.0-rc.1(monaco-editor@0.55.1):
     dependencies:
+      kivistorage: 1.0.1
       monaco-editor: 0.55.1
-      wraplet: 1.0.0-beta.18
+      wraplet: 1.0.0-rc.2
 
   express@4.22.1:
     dependencies:
@@ -10800,6 +10804,8 @@ snapshots:
   khroma@2.1.0: {}
 
   kind-of@6.0.3: {}
+
+  kivistorage@1.0.1: {}
 
   kleur@3.0.3: {}
 
@@ -13248,7 +13254,7 @@ snapshots:
       string-width: 5.1.2
       strip-ansi: 7.1.2
 
-  wraplet@1.0.0-beta.18: {}
+  wraplet@1.0.0-rc.2: {}
 
   write-file-atomic@3.0.3:
     dependencies:

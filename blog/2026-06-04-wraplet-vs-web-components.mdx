@@ -218,6 +218,13 @@ fundamental issues and leaves the rest to the ecosystem.
 So if you specifically want "set an attribute, get a callback", Web
 Components do that out of the box, and Wraplet doesn't.
 
+<div className={"statement"}>
+    Since this text was originally written, Wraplet introduced the <a href="/blog/v1.0.0-rc-2-released">Wiring API</a>,
+    allowing for a simplified tying of custom objects' lifecycle with a wraplet's one.
+    This was made to make it possible to implement a custom reactivity engine that could
+    be wired up with wraplets on a need basis, through composition.
+</div>
+
 ### Shadow DOM vs the real DOM
 
 Web Components ship with Shadow DOM: an encapsulated subtree with its own

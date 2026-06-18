@@ -56,8 +56,26 @@ import BrowserOnly from "@docusaurus/BrowserOnly";
     }}
 </BrowserOnly>
 
+You can also use Wiring API when you extend the base classes:
+
+<BrowserOnly>
+    {() => {
+        const Example = require("@site/src/components/Example").default;
+        const MonacoEditor = require("@site/src/components/MonacoEditor").default;
+
+        return (
+            <Example loadComments={false}>
+                <h4>HTML</h4>
+                <MonacoEditor contentUrl="/examples/reference/abstract-wraplet/wiring-api/html.htm" language="html" height="30px" />
+                <h4>TypeScript</h4>
+                <MonacoEditor contentUrl="/examples/reference/abstract-wraplet/wiring-api/typescript.txt" language="typescript" height="620px" />
+            </Example>
+        );
+    }}
+</BrowserOnly>
+
 To conclude: Instead of manually connecting every feature to every lifecycle callback,
-you define wiring once and reuse it across wraplets. This should make composition-based
+you define wiring once and reuse it across wraplets. This will make composition-based
 wraplets easier to manage as their behavior grows.
 
 I hope you like this addition.

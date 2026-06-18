@@ -321,7 +321,7 @@ export default class Example extends React.Component<ExampleProps, ExampleState>
             <iframe
               ref={this.iframeRef}
               sandbox="allow-scripts"
-              data-js-exhibition-preview
+              data-js-exhibition__preview
               className="w-100 rounded"
               style={{display: "block", height: previewHeight, width: "100%"}}
             ></iframe>
@@ -377,7 +377,7 @@ export default class Example extends React.Component<ExampleProps, ExampleState>
                 <iframe
                   ref={this.iframeRef}
                   sandbox="allow-scripts"
-                  data-js-exhibition-preview
+                  data-js-exhibition__preview
                   className="w-100"
                   style={{display: "block", width: "100%", height: "100%", border: "none"}}
                 ></iframe>

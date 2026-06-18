@@ -1,0 +1,58 @@
+import {
+    AbstractWraplet,
+    type Wiring,
+} from "wraplet";
+
+
+// This is an example class that has its own lifecycle.
+// We would like to tie this lifecycle to the wraplet's one,
+// it will get initialized and destroyed alongside the wraplet
+// that uses it.
+class SomethingWithLifecycle {
+
+  public isInitialized = false;
+
+  public initialize() {
+    this.isInitialized = true;
+  }
+
+  // The class provides its own "wiring". These are the callbacks
+  // that will get merged into the Wraplet API.
+  public wiring(): Wiring {
+    return {
+      initializeCallback: async () => { this.initialize(); },
+    };
+  }
+
+}
+
+
+class TestWrapletClass extends AbstractWraplet<HTMLElement> {
+
+  private somethingWithLifecycle: SomethingWithLifecycle;
+
+  // Wiring up of our instance to the Wraplet API happens here.
+  protected wrapletApiWirings(): Wiring[] {
+    this.somethingWithLifecycle = new SomethingWithLifecycle();
+
+    // We add our wiring to the returning array.
+    // Now our instance is tied to the Wraplet API.
+    return [
+      this.somethingWithLifecycle.wiring(),
+    ];
+  }
+
+  protected async onInitialize() {
+    // Here we make sure that indeed our instance has been initialized.
+    this.node.innerHTML =
+      "is somethingWithLifecycle initialized: "
+        + this.somethingWithLifecycle.isInitialized;
+  }
+
+}
+
+const element: HTMLElement = document.querySelector("[data-js-example]");
+
+const instance = new TestWrapletClass(element);
+
+await instance.wraplet.initialize();

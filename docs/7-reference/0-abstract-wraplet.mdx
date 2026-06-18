@@ -107,6 +107,16 @@ This method is wired up to the `WrapletApi`'s lifecycle callback.
 
 By implementing it, you can perform any cleanup logic that needs to be done before the wraplet is destroyed.
 
+### wrapletApiWirings
+
+```typescript
+protected wrapletApiWirings(): Wiring[] {
+```
+
+This method allows tying lifecycles of random objects to the wraplet's lifecycle.
+
+See the example [HERE](#custom-wiring).
+
 ### static createWraplets
 
 ```typescript
@@ -154,3 +164,26 @@ protected static async createAndInitializeWraplets<
 
 This one is similar to the `static createWraplets` method. The only difference is that it also initializes
 the wraplets before returning them. That's why it's asynchronous.
+
+## Examples
+
+import BrowserOnly from "@docusaurus/BrowserOnly";
+
+### Custom wiring
+
+
+<BrowserOnly>
+    {() => {
+        const Example = require("@site/src/components/Example").default;
+        const MonacoEditor = require("@site/src/components/MonacoEditor").default;
+
+        return (
+            <Example loadComments={false}>
+                <h4>HTML</h4>
+                <MonacoEditor contentUrl="/examples/reference/abstract-wraplet/wiring-api/html.htm" language="html" height="30px" />
+                <h4>TypeScript</h4>
+                <MonacoEditor contentUrl="/examples/reference/abstract-wraplet/wiring-api/typescript.txt" language="typescript" height="620px" />
+            </Example>
+        );
+    }}
+</BrowserOnly>

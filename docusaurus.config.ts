@@ -157,7 +157,7 @@ const config: Config = {
       darkTheme: prismThemes.dracula,
     },
   } satisfies Preset.ThemeConfig,
-  scripts: [{src: 'https://plausible.io/js/script.js', defer: true, 'data-domain': 'wraplet.dev'}],
+  scripts: [{src: 'https://analytics.zaroda.pl/api/script.js', defer: true, 'data-site-id': '9f01447e052a'}],
   markdown: {
     mermaid: true,
   },

@@ -1,4 +1,4 @@
-import { AbstractWraplet } from "wraplet";
+import { AbstractWraplet } from "@wraplet/core";
 
 // `AbstractWraplet` is an abstract class that provides
 // a common interface for all wraplets called "Wraplet API".

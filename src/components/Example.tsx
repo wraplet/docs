@@ -231,7 +231,7 @@ export default class Example extends React.Component<ExampleProps, ExampleState>
     // We want this to be applied last, so we would have access to all script tags.
     preview.addDocumentAlterer((document: Document) => {
       document.body.querySelectorAll('script').forEach(scriptElement => {
-        scriptElement.textContent = scriptElement.textContent.replace('from "wraplet"', `from "${WRAPLET_URL}"`)
+        scriptElement.textContent = scriptElement.textContent.replace('from "@wraplet/core"', `from "${WRAPLET_URL}"`)
       })
     }, -99);
 
@@ -247,7 +247,7 @@ export default class Example extends React.Component<ExampleProps, ExampleState>
       document.head.append(styleEl);
     });
 
-    for (const editor of [...this.editors].reverse()) {
+    for (const editor of this.editors) {
       preview.addDocumentAlterer(editor.getDocumentAlterer(), 0);
     }
   }

@@ -1,4 +1,4 @@
-import { AbstractWraplet, AbstractDependentWraplet, type WrapletDependencyMap } from "wraplet";
+import { AbstractWraplet, AbstractDependentWraplet, type WrapletDependencyMap } from "@wraplet/core";
 
 class Input extends AbstractWraplet<HTMLInputElement> {
 

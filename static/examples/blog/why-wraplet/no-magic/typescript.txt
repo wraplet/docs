@@ -1,4 +1,4 @@
-import { AbstractWraplet } from "wraplet";
+import { AbstractWraplet } from "@wraplet/core";
 
 // A single class wrapping a real DOM node.
 // No virtual DOM, no compiler, no hidden reactivity.

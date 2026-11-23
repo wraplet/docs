@@ -1,6 +1,6 @@
 import {
     AbstractWraplet,
-} from "wraplet";
+} from "@wraplet/core";
 
 /*
  * Main wraplet.

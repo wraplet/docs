@@ -1,4 +1,4 @@
-import { AbstractWraplet } from "wraplet";
+import { AbstractWraplet } from "@wraplet/core";
 
 // A wraplet wraps an existing DOM node - the tag stays a plain
 // <strong>. There is no upgrade, no shadow root, no new element

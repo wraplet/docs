@@ -3,7 +3,7 @@ import {
     AbstractDependentWraplet,
     DDM,
     type WrapletDependencyMap
-} from "wraplet";
+} from "@wraplet/core";
 
 class Container extends AbstractWraplet<HTMLElement> {
     // This is a handy hook executed during the wraplet's initialization.

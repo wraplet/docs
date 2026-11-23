@@ -2,7 +2,7 @@ import {
     AbstractWraplet,
     AbstractDependentWraplet,
     type WrapletDependencyMap,
-} from "wraplet";
+} from "@wraplet/core";
 
 // Note that only the wraplet extending the `AbstractDependentWraplet`
 // class has a Dependency Manager injected. Its dependency doesn't

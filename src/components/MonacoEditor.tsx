@@ -11,13 +11,30 @@ interface Props {
   options?: Partial<ExhibitionMonacoEditorOptions>,
   height?: string,
   stripComments?: boolean,
+  collapsible?: boolean,
+  defaultCollapsed?: boolean,
 }
 
-export default class MonacoEditor extends React.Component<Props> {
+interface State {
+  collapsed: boolean,
+}
+
+export default class MonacoEditor extends React.Component<Props, State> {
   private myRef: RefObject<HTMLDivElement | null> = createRef();
   private editor?: ExhibitionMonacoEditor;
   static contextType = MonacoEditorRegistryContext;
   context: React.ContextType<typeof MonacoEditorRegistryContext> | null = null;
+
+  constructor(props: Props) {
+    super(props);
+    this.state = {
+      collapsed: props.collapsible ? (props.defaultCollapsed ?? true) : false,
+    };
+  }
+
+  private toggleCollapsed = () => {
+    this.setState((prev) => ({collapsed: !prev.collapsed}));
+  };
 
   async componentDidMount() {
     if (!ExecutionEnvironment.canUseDOM) {
@@ -105,13 +122,57 @@ export default class MonacoEditor extends React.Component<Props> {
   }
 
   render() {
+    if (!this.props.collapsible) {
+      return (
+        <div
+          ref={this.myRef}
+          data-js-exhibition-editor
+          className="bordered margin-bottom--md"
+          style={{height: this.props.height ?? "500px", resize: "vertical", width: "100%", minWidth: 0, maxWidth: "100%"}}
+        ></div>
+      );
+    }
+
+    const collapsed = this.state.collapsed;
+
     return (
-      <div
-        ref={this.myRef}
-        data-js-exhibition-editor
-        className="bordered margin-bottom--md"
-        style={{height: this.props.height ?? "500px", resize: "vertical", width: "100%", minWidth: 0, maxWidth: "100%"}}
-      ></div>
+      <div className="margin-bottom--md" style={{width: "100%", minWidth: 0, maxWidth: "100%"}}>
+        <div
+          className="bordered"
+          onClick={this.toggleCollapsed}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "4px 8px",
+            cursor: "pointer",
+            borderBottom: collapsed ? undefined : "none",
+          }}
+        >
+          <span>Editor</span>
+          <button
+            type="button"
+            aria-expanded={!collapsed}
+            onClick={(e) => { e.stopPropagation(); this.toggleCollapsed(); }}
+            style={{cursor: "pointer", background: "transparent", border: "none", font: "inherit"}}
+          >
+            {collapsed ? "\u25BC Expand" : "\u25B2 Collapse"}
+          </button>
+        </div>
+        <div
+          ref={this.myRef}
+          data-js-exhibition-editor
+          className="bordered"
+          style={{
+            height: this.props.height ?? "500px",
+            resize: "vertical",
+            width: "100%",
+            minWidth: 0,
+            maxWidth: "100%",
+            display: collapsed ? "none" : "block",
+          }}
+        ></div>
+      </div>
     );
   }
 
@@ -139,6 +200,6 @@ export default class MonacoEditor extends React.Component<Props> {
     ];
 
     // Load wraplet's type declarations.'
-    await loadTypeDeclarationsFromFiles("wraplet", WRAPLET_DIST_URL, wrapletFiles, "ts:wraplet.d.ts");
+    await loadTypeDeclarationsFromFiles("@wraplet/core", WRAPLET_DIST_URL, wrapletFiles, "ts:wraplet.d.ts");
   }
 }

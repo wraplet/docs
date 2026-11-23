@@ -1,7 +1,7 @@
 import {
     AbstractWraplet,
     type WrapletDependencyMap,
-} from "wraplet";
+} from "@wraplet/core";
 
 /*
  * Step 1

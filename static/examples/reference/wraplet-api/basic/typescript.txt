@@ -2,7 +2,7 @@ import {
     type Wraplet,
     type WrapletApi,
     createWrapletApi,
-} from "wraplet";
+} from "@wraplet/core";
 
 class TestWrapletClass implements Wraplet {
   public wraplet: WrapletApi;

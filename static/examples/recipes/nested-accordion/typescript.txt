@@ -3,7 +3,7 @@ import {
     AbstractDependentWraplet,
     DDM,
     type WrapletDependencyMap,
-} from "wraplet";
+} from "@wraplet/core";
 
 /*
  * Dependencies.

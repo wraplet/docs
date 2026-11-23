@@ -3,7 +3,7 @@ import {
     AbstractDependentWraplet,
     DDM,
     type WrapletDependencyMap,
-} from "wraplet";
+} from "@wraplet/core";
 
 // Small leaf wraplets - each one owns a single, real DOM node
 // and exposes a tiny, typed API around it.

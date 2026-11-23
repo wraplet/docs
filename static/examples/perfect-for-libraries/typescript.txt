@@ -4,7 +4,7 @@ import {
     type WrapletDependencyMap,
     type Wraplet,
     type Constructable,
-} from "wraplet";
+} from "@wraplet/core";
 
 /**
  * Dependencies.

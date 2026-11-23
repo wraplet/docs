@@ -1,4 +1,4 @@
-import { AbstractWraplet } from "wraplet";
+import { AbstractWraplet } from "@wraplet/core";
 
 // We'll start by defining our wraplet class.
 //

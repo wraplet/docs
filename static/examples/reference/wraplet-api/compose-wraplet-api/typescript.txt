@@ -4,7 +4,7 @@ import {
     AbstractWraplet,
     composeWrapletApi,
     NodeManager,
-} from "wraplet";
+} from "@wraplet/core";
 
 class TestWrapletClass implements Wraplet {
   public wraplet: WrapletApi;
@@ -23,7 +23,7 @@ class TestWrapletClass implements Wraplet {
       // If it required wiring up also its initialization in
       // the future, you wouldn't need to change this code. It could
       // extend its wiring without bothering you.
-      NodeManager.wire(this.nodeManager),
+      this.nodeManager.wiring(),
 
       // You can re-use wirings of provided base classes without
       // extending them. It was made to make it even easier to avoid

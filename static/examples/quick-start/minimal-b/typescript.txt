@@ -1,4 +1,4 @@
-import { AbstractWraplet } from "wraplet";
+import { AbstractWraplet } from "@wraplet/core";
 
 class ExampleWraplet extends AbstractWraplet<HTMLElement> {
     public setValue(value: string): void {

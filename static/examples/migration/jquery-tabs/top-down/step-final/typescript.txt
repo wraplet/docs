@@ -4,7 +4,7 @@ import {
     // management to our main wraplet.
     AbstractDependentWraplet,
     type WrapletDependencyMap
-} from "wraplet";
+} from "@wraplet/core";
 
 /*
  * Dependencies.

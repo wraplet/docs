@@ -3,7 +3,7 @@ import {
     DDM,
     WrapletSet,
     type WrapletDependencyMap,
-} from "wraplet";
+} from "@wraplet/core";
 
 class TestDependency extends AbstractWraplet<HTMLElement> {}
 
